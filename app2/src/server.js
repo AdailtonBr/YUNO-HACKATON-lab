@@ -1,4 +1,10 @@
-/** Sobe as tres lojas da demo (A, B e a nao-registrada) em portas separadas. */
+/**
+ * Sobe as tres comercializadoras da demo em portas separadas.
+ *
+ * O spread passa o adaptador inteiro — `toCommon`, os quatro `set*` e o
+ * `canForgeTickets` da Helios.  Cada loja e um app Express proprio: portas
+ * diferentes sao o que torna "outra contraparte" algo real e nao um campo.
+ */
 
 import { buildStore } from "./store.js";
 import { STORES } from "./catalogs.js";
