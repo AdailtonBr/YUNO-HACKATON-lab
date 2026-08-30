@@ -78,6 +78,8 @@ It is kept, dormant, because it costs nothing and it is the proof that the bound
 
 ## Getting it running
 
+Node 20.12 or newer (the dev scripts use `--env-file-if-exists`).
+
 ```bash
 npm install
 npm test        # 238 tests, including 24 adversarial ones. In-memory Mongo — no Atlas needed
