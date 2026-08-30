@@ -1,6 +1,6 @@
 /**
  * Bilhete de compra (`purchaseTicket`) — como a identidade do agente é PROVADA.
- * Ver `docs/03-data-model-and-api.md` e D16 em `docs/06-decision-log.md`.
+ * Ver `docs/03-data-model-and-api.md` e §2.7 em `docs/DECISION-LOG.md`.
  *
  * A Autoridade NÃO aceita a palavra da loja sobre quem é o agente.  A cada
  * tentativa o agente assina um bilhete descrevendo exatamente a compra pedida;

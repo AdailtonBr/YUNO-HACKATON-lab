@@ -70,7 +70,7 @@ Siga `docs/07-build-plan.md`. Resumo: **fluxo feliz de ponta a ponta primeiro**,
 - `docs/03-data-model-and-api.md` — schemas do Mongo e contratos de endpoint.
 - `docs/04-constraint-engine.md` — o motor (`evaluate`), operadores, `on_missing`/`on_fail`, portão de aprovação, exemplos.
 - `docs/05-security-and-ugly-cases.md` — casos feios, ataques, defesas.
-- `docs/06-decision-log.md` — as decisões + como escrever o deliverable.
+- `docs/DECISION-LOG.md` — **o Decision Log** (deliverable, em inglês): o que escolhemos, o que rejeitamos, e o que abrimos mão de propósito.
 - `docs/07-build-plan.md` — build faseado, real vs mock, roteiro da demo.
 - `docs/08-scaling.md` — caminho de escala do modelo de id opaco (não implementado no MVP; existe para defender "e em escala?").
 - `docs/09-agent.md` — o agente: cérebro (LLM) + mãos (tools) + corpo (orquestrador), o loop, e por que as decisões do modelo são sugestões.

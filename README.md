@@ -181,7 +181,7 @@ Written in PT-BR, and the source of truth for every decision here.
 | `docs/03-data-model-and-api.md` | schemas and endpoint contracts |
 | `docs/04-constraint-engine.md` | the engine, operators, `on_missing`/`on_fail`, the approval gate |
 | `docs/05-security-and-ugly-cases.md` | each ugly case and attack, and where it dies |
-| `docs/06-decision-log.md` | **the Decision Log** — D1–D19, alternatives and why |
+| `docs/DECISION-LOG.md` | **the Decision Log** — what we chose, what we rejected, and what we gave up on purpose |
 | `docs/07-build-plan.md` | build order, real vs mock, demo script |
 | `docs/08-scaling.md` | how the opaque-id model scales (not in the MVP) |
 | `docs/09-agent.md` | brain + hands + body, the tools, the loop |
@@ -193,7 +193,7 @@ Written in PT-BR, and the source of truth for every decision here.
 2. Demo (live or recorded)
 3. Public repo with README ← this file
 4. Architecture diagram ← `docs/02-architecture.md`
-5. **Decision Log** ← `docs/06-decision-log.md`
+5. **Decision Log** ← `docs/DECISION-LOG.md`
 
 > The technical defence weighs as much as the demo. Every choice here is meant to be defensible — which is
 > why the decision log records the alternatives we rejected, and why.

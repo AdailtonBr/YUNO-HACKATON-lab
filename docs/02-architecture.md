@@ -17,7 +17,7 @@ A intuição errada é pensar "agente ↔ loja". O sistema tem **quatro papéis*
 
 O "token" que o agente carrega é um **id opaco** de alta entropia (ex.: `mnd_9f3a...`), **não** um JWT assinado com os limites dentro. Quando a loja precisa verificar, ela **chama** o endpoint `/introspect` da Autoridade, que resolve tudo no servidor (existe? não revogado? não expirado? constraints batem? agente é o dono?).
 
-Por que B e não A (JWT assinado, estilo AP2): **revogação ao vivo trivial** (uma flag lida na próxima consulta), **selective disclosure** (a loja só pergunta "cabe?", não vê os limites) e **menos superfície de cripto** para dar errado na demo. Trade-off aceito: uma chamada de rede por compra e dependência da Autoridade estar de pé. Ver `docs/06-decision-log.md`.
+Por que B e não A (JWT assinado, estilo AP2): **revogação ao vivo trivial** (uma flag lida na próxima consulta), **selective disclosure** (a loja só pergunta "cabe?", não vê os limites) e **menos superfície de cripto** para dar errado na demo. Trade-off aceito: uma chamada de rede por compra e dependência da Autoridade estar de pé. Ver §2.2 em `docs/DECISION-LOG.md`.
 
 **Escala:** ver `docs/08-scaling.md`.
 
@@ -62,13 +62,13 @@ sequenceDiagram
 - **Loja → Autoridade:** a loja confia porque **chama** a Autoridade e ela responde (introspecção). Não há assinatura para verificar offline.
 - **Autoridade → Loja:** a Autoridade só fala com lojas **registradas e autenticadas** (allow-list de merchants + mTLS/chave). Uma loja falsa/não-registrada não participa do fluxo — é o mecanismo anti-site-fake. (Nota: a discussão sobre uma *credenciadora* externa foi deixada de fora do escopo; aqui as lojas são um registro confiável mantido pela própria Autoridade.)
 - **Agente → Autoridade:** o agente **prova** quem é assinando um `purchaseTicket` por tentativa (HMAC com segredo que só ele e a Autoridade conhecem), descrevendo exatamente a compra pedida. A loja repassa o bilhete intacto e a Autoridade o verifica ela mesma: o `agentId` é **derivado do bilhete**, nunca lido de um campo do corpo — nem do corpo do agente, nem do da loja.
-  > Por que não basta a loja autenticar o agente e contar à Autoridade: uma loja registrada que atendeu uma compra legítima conhece `mandateId` e `agentId`, e poderia cobrar a titular depois, **sem agente nenhum**. Ver D16 em `docs/06-decision-log.md`.
+  > Por que não basta a loja autenticar o agente e contar à Autoridade: uma loja registrada que atendeu uma compra legítima conhece `mandateId` e `agentId`, e poderia cobrar a titular depois, **sem agente nenhum**. Ver §2.7 em `docs/DECISION-LOG.md`.
 - **Humano → tudo:** a raiz da autorização. Só o humano cria/alarga/revoga mandato, na Trusted Surface, num ponto que o agente não alcança.
 
 ## Onde a IA entra (e onde não entra)
 
 - **IA rascunha, determinístico decide.** O Agente (LLM) conversa, interpreta a intenção, descobre quais atributos importam e monta a *proposta*. A **verificação** na transação é 100% determinística (motor de constraints, comparação de strings/números). Nenhum LLM no caminho crítico do dinheiro.
-- Reconciliação semântica de nomes de atributo (ex.: `liga` ≈ `liga_cimento`), **se** existir, roda no **cadastro da loja** (offline, com revisão humana) e é congelada como mapa determinístico — nunca na hora da transação. Ver `docs/06-decision-log.md`.
+- Reconciliação semântica de nomes de atributo (ex.: `liga` ≈ `liga_cimento`), **se** existir, roda no **cadastro da loja** (offline, com revisão humana) e é congelada como mapa determinístico — nunca na hora da transação. Ver `docs/DECISION-LOG.md`.
 
 ## Diagrama de arquitetura (para o deliverable)
 

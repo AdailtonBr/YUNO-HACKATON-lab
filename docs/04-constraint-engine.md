@@ -158,7 +158,7 @@ const escalate = (reason) => ({ valid: false, action: "escalate", reason });
 
 ## O portão do modo `aprovacao` (imposto pela Autoridade)
 
-`mode` diz se o mandato exige um "ok" humano **por compra** (`aprovacao`) ou não (`autonomo`) — ver D11 em `docs/06-decision-log.md`. A pergunta de projeto é **quem segura a compra**:
+`mode` diz se o mandato exige um "ok" humano **por compra** (`aprovacao`) ou não (`autonomo`) — ver §2.9 em `docs/DECISION-LOG.md`. A pergunta de projeto é **quem segura a compra**:
 
 - **O Agente segura** (ele lê o modo, para e espera o ok): simples, e errado. A trava que existe para limitar o agente ficaria **dentro** do agente. Um bug, uma conversa manipulada ("minha chefe já aprovou por fora") ou um agente adversarial que simplesmente não lê o campo passam direto, e não há nada atrás para pegar. Viola a invariante 1 do `CLAUDE.md`.
 - **A Autoridade segura** (escolhido): toda compra num mandato `aprovacao` volta `escalate`, **a menos que** exista uma aprovação humana registrada para aquela compra. O agente não consegue pular a etapa nem querendo — não é disciplina dele, é topologia.
@@ -225,4 +225,4 @@ if (quantity > 1 && !mandate.constraints.some((c) => c.attr === "total")) {
 
 O motor também **refaz a conta** (`total == price × quantity`) e compara os dois números com o que o agente assinou. O total é o que sai da conta: ele não pode ser afirmado por ninguém, tem que ser derivável do que foi atestado.
 
-Ver **D19** em `docs/06-decision-log.md`.
+Ver *"Quantity opened a hole"* (§3) em `docs/DECISION-LOG.md`.

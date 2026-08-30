@@ -2,7 +2,7 @@
 
 > Este doc responde à pergunta que a banca faz depois de entender a abordagem B: *"e se forem um milhão de compras por minuto?"*. Ele **não muda nada do MVP** — descreve a curva de evolução e o que a torna possível.
 
-O único custo estrutural de B é **uma chamada viva por compra**: a loja precisa perguntar à Autoridade "ainda vale?". Escalar B é, portanto, **absorver ou eliminar essa chamada sem perder a revogação viva** — a propriedade que nos fez escolher B em primeiro lugar (D2 em `docs/06-decision-log.md`).
+O único custo estrutural de B é **uma chamada viva por compra**: a loja precisa perguntar à Autoridade "ainda vale?". Escalar B é, portanto, **absorver ou eliminar essa chamada sem perder a revogação viva** — a propriedade que nos fez escolher B em primeiro lugar (§2.2 em `docs/DECISION-LOG.md`).
 
 Tudo abaixo decorre dessa única frase. Cada seção tira mais trabalho do caminho crítico; nenhuma abre mão de que "este mandato morreu" chegue até onde a verificação acontece.
 
