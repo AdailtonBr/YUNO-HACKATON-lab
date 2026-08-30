@@ -125,9 +125,16 @@ export function resolveDispute(disputed, trail, mandate, { parent = null, parent
   );
 
   // 3) As regras foram avaliadas e passaram — com o veredito de cada uma.
+  //
+  //    Uma regra DISPENSADA por um sim humano explícito não quebra este elo:
+  //    ela migra para o elo da aprovação, logo abaixo, que é onde a
+  //    responsabilidade de fato passou a morar.  O trace continua mostrando
+  //    qual regra foi, para ninguém precisar acreditar na palavra de nada.
   const trace = disputed.trace ?? [];
-  const allOk = trace.length > 0 && trace.every((t) => ["ok", "missing_allowed"].includes(t.verdict));
-  evidence.push(link("rules_passed", allOk, { trace }));
+  const waived = trace.filter((t) => t.verdict === "approved_by_human");
+  const allOk =
+    trace.length > 0 && trace.every((t) => ["ok", "missing_allowed", "approved_by_human"].includes(t.verdict));
+  evidence.push(link("rules_passed", allOk, { trace, waived: waived.map((t) => t.attr) }));
 
   // 3.5) A CURVA: o número que decidiu é o número que ficou no registro?
   //
@@ -154,7 +161,9 @@ export function resolveDispute(disputed, trail, mandate, { parent = null, parent
 
   // 4) Se o mandato exigia aprovação por compra, tem que existir um sim
   //    específico — e específico daquela compra, não um sim genérico.
-  const needsApproval = mandate?.mode === "aprovacao";
+  // A aprovação é exigida por duas origens, e o elo cobre as duas: o mandato
+  // pedir um sim a cada compra, OU uma regra ter sido dispensada por um sim.
+  const needsApproval = mandate?.mode === "aprovacao" || waived.length > 0;
   const granted = trail.find(
     (e) =>
       e.event === "approval_granted" &&
@@ -165,6 +174,8 @@ export function resolveDispute(disputed, trail, mandate, { parent = null, parent
   evidence.push(
     link("human_approval", needsApproval ? !!granted : null, {
       required: needsApproval,
+      // Por que foi exigido: o modo do mandato, ou a regra que alguém dispensou.
+      because: waived.length ? { waived: waived.map((t) => t.attr) } : mandate?.mode === "aprovacao" ? { mode: "aprovacao" } : null,
       ts: granted?.ts ?? null,
       by: granted?.actor?.id ?? null,
     })

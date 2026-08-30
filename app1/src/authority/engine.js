@@ -168,9 +168,29 @@ export function evaluate(mandate, purchase, ctx) {
       // FALHA -> on_fail.  Fora do mandato recusa OU escala, nunca aprova em silêncio.
       row.verdict = "violated";
       const params = { attr: c.attr, op: c.op, value: c.value, actual: real };
-      return c.on_fail === "escalate"
-        ? escalate("constraint_failed", params, trace)
-        : deny("constraint_failed", params, trace); // default: deny
+
+      if (c.on_fail !== "escalate") return deny("constraint_failed", params, trace); // default: deny
+
+      // Escalar é uma PERGUNTA, e uma pergunta pode já ter sido respondida.
+      //
+      // Sem esta consulta, `on_fail: "escalate"` era um beco sem saída: a
+      // Autoridade gravava a pendência, o humano aprovava, e a tentativa
+      // seguinte escalava de novo — a mesma compra pendurada para sempre.  O
+      // `docs/04` sempre descreveu um mecanismo com duas origens; era o código
+      // que só honrava uma delas (a do `mode`).
+      //
+      // O sim é o mesmo de sempre: estreito (mesmo mandato, loja, produto,
+      // preço e quantidade), de uso único e com validade curta.  Ele libera
+      // ESTA compra, não alarga o mandato — as regras seguintes continuam
+      // sendo avaliadas logo abaixo.
+      if (!approvalMatches(approval, mandate, purchase, ctx)) {
+        return escalate("constraint_failed", params, trace);
+      }
+      // Fica no trilho QUAL regra o humano dispensou.  "As regras passaram" e
+      // "uma regra falhou e alguém assumiu a responsabilidade" são fatos
+      // diferentes, e a disputa precisa saber distinguir os dois.
+      row.verdict = "approved_by_human";
+      continue;
     }
 
     row.verdict = "ok";

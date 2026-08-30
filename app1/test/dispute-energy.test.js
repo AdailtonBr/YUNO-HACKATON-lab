@@ -198,3 +198,54 @@ test("tentativa recusada nao gera disputa: nao ha o que contestar", () => {
   assert.equal(r.verdict, "nothing_charged");
   assert.equal(r.charged, null);
 });
+
+/* ------------------- a regra dispensada por um sim humano ------------------- */
+
+const dispensada = () =>
+  decision({
+    trace: [
+      { attr: "rating", op: "in", value: ["A-"], actual: "A-", verdict: "ok" },
+      { attr: "economia_liquida_brl", op: "lte", value: 5000000, actual: 21000000, verdict: "approved_by_human" },
+    ],
+  });
+
+const simDoGestor = (p) => ({
+  ts: T1,
+  event: "approval_granted",
+  actor: { type: "human", id: "user_aurora" },
+  purchase: { productId: p.productId, price: p.price },
+});
+
+test("regra dispensada por um sim humano NAO quebra as regras — migra para a aprovacao", () => {
+  const d = dispensada();
+  const r = resolveDispute(
+    d,
+    [criadoOperacional, simDoGestor(d.purchase), d, pago(d.purchase)],
+    mandate(),
+    { parent: parent(), parentTrail: [criadoPai] }
+  );
+  assert.equal(r.verdict, "authorized");
+
+  // O elo das regras continua de pe, e diz QUAL regra foi dispensada.
+  const regras = linkOf(r, "rules_passed");
+  assert.equal(regras.ok, true);
+  assert.deepEqual(regras.waived, ["economia_liquida_brl"]);
+
+  // E o elo da aprovacao passou a ser exigido, dizendo por que.
+  const aprov = linkOf(r, "human_approval");
+  assert.equal(aprov.ok, true);
+  assert.equal(aprov.required, true);
+  assert.deepEqual(aprov.because, { waived: ["economia_liquida_brl"] });
+  assert.equal(aprov.by, "user_aurora");
+});
+
+test("regra dispensada SEM o sim registrado: a cobranca NAO se sustenta", () => {
+  // E o cenario mais grave possivel: alguem passou por cima de um limite e nao
+  // ha, no trilho, ninguem que tenha assumido essa decisao.
+  const d = dispensada();
+  const r = resolveDispute(d, [criadoOperacional, d, pago(d.purchase)], mandate(), {
+    parent: parent(), parentTrail: [criadoPai],
+  });
+  assert.equal(r.verdict, "not_authorized");
+  assert.equal(r.brokenLink, "human_approval");
+});

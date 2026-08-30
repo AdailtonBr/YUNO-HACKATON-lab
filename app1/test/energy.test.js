@@ -302,3 +302,55 @@ test("derivar de um mandato ja revogado nao acontece", async () => {
   assert.equal(status, 409);
   assert.equal(body.error, "parent_revoked");
 });
+
+/* ------------------------------- a alcada ------------------------------- */
+
+test("ALCADA COMPLETA: escala, o gestor aprova, e o contrato FECHA", async () => {
+  const parent = await umbrella();
+  const { body } = await operational(parent);
+
+  const primeira = await buy("volt_andina", body.mandateId);
+  assert.equal(primeira.action, "escalate");
+
+  // A Autoridade gravou a pendencia. O agente nao escreveu nada.
+  const pend = await fetch(`${authorityUrl}/approvals`, { headers: asHuman }).then((r) => r.json());
+  assert.equal(pend.length, 1);
+  assert.equal(pend[0].origin, "on_fail");
+
+  await post(`/approvals/${pend[0].approvalId}/approve`);
+
+  const segunda = await buy("volt_andina", body.mandateId);
+  assert.equal(segunda.ok, true);
+  assert.ok(segunda.receiptId);
+
+  // A regra dispensada fica NOMEADA no trilho -- nao apagada.
+  const dispensada = segunda.trace.find((t) => t.attr === "economia_liquida_brl");
+  assert.equal(dispensada.verdict, "approved_by_human");
+});
+
+test("o sim vale UMA vez: a tentativa seguinte volta a escalar", async () => {
+  const parent = await umbrella();
+  const { body } = await operational(parent);
+
+  await buy("volt_andina", body.mandateId);
+  const pend = await fetch(`${authorityUrl}/approvals`, { headers: asHuman }).then((r) => r.json());
+  await post(`/approvals/${pend[0].approvalId}/approve`);
+
+  assert.equal((await buy("volt_andina", body.mandateId)).ok, true);
+  // Aprovar R$210.000 uma vez nao e um cheque em branco de R$210.000 por mes.
+  assert.equal((await buy("volt_andina", body.mandateId)).action, "escalate");
+});
+
+test("aprovar nao alarga o mandato: a Cerrado continua recusada no rating", async () => {
+  const parent = await umbrella();
+  const { body } = await operational(parent);
+
+  await buy("volt_andina", body.mandateId);
+  const pend = await fetch(`${authorityUrl}/approvals`, { headers: asHuman }).then((r) => r.json());
+  await post(`/approvals/${pend[0].approvalId}/approve`);
+
+  // O sim foi para AQUELA compra. Outra contraparte segue barrada.
+  const cerrado = await buy("cerrado_power", body.mandateId);
+  assert.equal(cerrado.action, "reject");
+  assert.equal(cerrado.reason.params.attr, "rating");
+});
