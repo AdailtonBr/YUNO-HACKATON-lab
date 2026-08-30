@@ -43,11 +43,25 @@ export default function RevokeDialog({ locale, mandate, descendants = [], onClos
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" onClick={onClose}>
+      {/*
+        * A caixa nunca passa da tela, e o CORPO e que rola -- nao a caixa.
+        *
+        * Sem teto de altura ela crescia com o conteudo (a lista da cascata pode
+        * ter varios filhos) e empurrava o rodape para fora da janela: o botao
+        * de confirmar ficava inalcancavel, e so dava para clicar diminuindo o
+        * zoom do navegador.  Num dialogo de acao irreversivel, o botao sumir e
+        * o pior lugar possivel para um bug de layout.
+        *
+        * `dvh` e nao `vh` porque no celular a barra do navegador entra na
+        * conta.  O `-2rem` desconta o respiro do overlay.  E o `min-h-0` no
+        * corpo nao e enfeite: sem ele o filho flex se recusa a encolher, e a
+        * rolagem simplesmente nao acontece.
+        */}
       <div
-        className="w-full max-w-2xl overflow-hidden rounded-lg bg-surface shadow-2xl"
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-surface shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between gap-4 bg-red-700 px-5 py-3.5">
+        <header className="flex shrink-0 items-center justify-between gap-4 bg-red-700 px-5 py-3.5">
           <div className="flex items-center gap-2.5">
             <span className="h-2.5 w-2.5 bg-surface" />
             <h2 className="font-sans text-[15px] font-semibold text-white">{T("revoke.title")}</h2>
@@ -55,7 +69,7 @@ export default function RevokeDialog({ locale, mandate, descendants = [], onClos
           <span className="font-mono text-[11.5px] text-red-100">{mandate.mandateId.slice(0, 16)}…</span>
         </header>
 
-        <div className="space-y-5 px-5 py-5">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
           <p className="font-sans text-[14px] leading-relaxed text-ink-dim">{T("revoke.lead")}</p>
 
           <div>
@@ -101,8 +115,15 @@ export default function RevokeDialog({ locale, mandate, descendants = [], onClos
               {phrase}
             </p>
             <div className="mt-2 flex items-center gap-3">
+              {/*
+                * Sem `autoFocus`, de proposito.
+                *
+                * Agora que o corpo rola, focar o campo puxava a rolagem ate o
+                * fim e a caixa abria no rodape -- pulando exatamente a lista
+                * do que sera encerrado.  A friccao desta tela existe para ser
+                * lida; abrir no ultimo passo a anula.
+                */}
               <input
-                autoFocus
                 value={typed}
                 onChange={(e) => setTyped(e.target.value)}
                 placeholder={phrase}
@@ -117,7 +138,7 @@ export default function RevokeDialog({ locale, mandate, descendants = [], onClos
           </div>
         </div>
 
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-surface-2 px-5 py-3.5">
+        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-line bg-surface-2 px-5 py-3.5">
           <p className="font-mono text-[11.5px] text-ink-dim">{T("revoke.logged")}</p>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={onClose}>
