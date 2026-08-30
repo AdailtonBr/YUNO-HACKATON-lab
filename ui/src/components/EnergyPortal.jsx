@@ -28,6 +28,13 @@ export function Issuer({ locale, methods, reload }) {
     volume: 42000, total: 1100000000, discount: 2, coverageMin: 95, coverageMax: 105,
     flexibility: 10, takeOrPay: 90, pld: 40000000, rating: "A-", operation: "novo_contrato",
     netSaving: 5000000, uses: 2,
+    // Comprar sozinho, ou perguntar antes de cada contrato.
+    //
+    // Estava fixo em "autonomo" -- e o prompt do proprio agente, em llm.js,
+    // proibe ELE de presumir isto: "never assume it".  A tela nao pode fazer o
+    // que o agente tem proibido de fazer.  E a diferenca entre um agente que
+    // gasta enquanto voce dorme e um que espera.
+    mode: "autonomo",
     // A janela de busca.  Era 90 dias fixos no codigo: o humano assinava
     // "procurar ate 31/12 e comprar quando aparecer" sem nunca ter escolhido a
     // data.  O default continua o mesmo; o que muda e que agora ele e uma
@@ -55,7 +62,7 @@ export function Issuer({ locale, methods, reload }) {
 
   const draft = useMemo(() => ({
     agentId: AGENT_ID,
-    mode: "autonomo",
+    mode: form.mode,
     currency: "BRL",
     // Sem `|| methods[0]`: uma escolha que ninguem fez nao e uma escolha.
     paymentMethodId: form.method,
@@ -131,6 +138,12 @@ export function Issuer({ locale, methods, reload }) {
             <div className="rounded border border-line bg-surface-2 px-3 py-2.5 font-mono text-[12px] text-ink-dim">{T("energy.guarantee")}</div>
           </Layer>
           <Layer title={T("energy.layer.governance")} note={T("energy.layer.governanceNote")}>
+            <Field label={T("energy.field.mode")} hint={T(form.mode === "autonomo" ? "energy.field.modeHintAuto" : "energy.field.modeHintAsk")}>
+              <Select value={form.mode} onChange={(e) => set("mode", e.target.value)}>
+                <option value="autonomo">{T("energy.option.autonomous")}</option>
+                <option value="aprovacao">{T("energy.option.askFirst")}</option>
+              </Select>
+            </Field>
             <Field label={T("energy.field.operation")}><Select value={form.operation} onChange={(e) => set("operation", e.target.value)}><option value="novo_contrato">{T("energy.option.newContract")}</option><option value="renovacao">{T("energy.option.renewal")}</option><option value="rescisao">{T("energy.option.termination")}</option></Select></Field>
             <Field label={T("energy.field.netSaving")} hint={T("energy.field.cents")}><Input type="number" value={form.netSaving} onChange={(e) => set("netSaving", e.target.value)} /></Field>
           </Layer>
