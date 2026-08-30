@@ -4,6 +4,9 @@ import { t } from "../i18n.js";
 import { Button, Chip, Empty, Field, Input, Label, Panel, ScreenHead, Select } from "./ui.jsx";
 
 const policy = (attr, op, value, onFail = "deny") => ({ attr, op, value, on_missing: "deny", on_fail: onFail });
+
+/** Data em YYYY-MM-DD, N dias a frente -- o formato que <input type="date"> fala. */
+const hoje = (mais = 0) => new Date(Date.now() + mais * 86400000).toISOString().slice(0, 10);
 const asNumber = (value) => Number(value || 0);
 
 function Layer({ title, note, children }) {
@@ -25,6 +28,11 @@ export function Issuer({ locale, methods, reload }) {
     volume: 42000, total: 1100000000, discount: 2, coverageMin: 95, coverageMax: 105,
     flexibility: 10, takeOrPay: 90, pld: 40000000, rating: "A-", operation: "novo_contrato",
     netSaving: 5000000, uses: 2,
+    // A janela de busca.  Era 90 dias fixos no codigo: o humano assinava
+    // "procurar ate 31/12 e comprar quando aparecer" sem nunca ter escolhido a
+    // data.  O default continua o mesmo; o que muda e que agora ele e uma
+    // escolha, e nao um valor que ninguem viu.
+    until: hoje(90),
     // Vazio, e vazio de proposito.
     //
     // Antes isto era `methods[0]?.methodId`, avaliado na montagem -- quando a
@@ -40,6 +48,9 @@ export function Issuer({ locale, methods, reload }) {
   });
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
+  // Um mandato que ja nasce vencido nao e autorizacao, e ruido no registro --
+  // a Autoridade recusa, e a tela nao deveria deixar chegar ate la.
+  const futura = !!form.until && form.until >= hoje(1);
   const set = (key, value) => setForm((previous) => ({ ...previous, [key]: value }));
 
   const draft = useMemo(() => ({
@@ -49,7 +60,9 @@ export function Issuer({ locale, methods, reload }) {
     // Sem `|| methods[0]`: uma escolha que ninguem fez nao e uma escolha.
     paymentMethodId: form.method,
     maxUses: asNumber(form.uses),
-    expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+    // Fim do dia escolhido: quem digita 31/12 quer o dia 31 inteiro, nao a
+    // meia-noite que o abre.
+    expiresAt: form.until ? new Date(`${form.until}T23:59:59Z`).toISOString() : null,
     constraints: [
       policy("comissao_terceiro", "eq", 0),
       policy("submercado", "eq", form.submarket),
@@ -102,6 +115,9 @@ export function Issuer({ locale, methods, reload }) {
             <Field label={T("energy.field.total")} hint={T("energy.field.cents")}><Input type="number" min="1" value={form.total} onChange={(e) => set("total", e.target.value)} /></Field>
             <Field label={T("energy.field.discount")}><Input type="number" step="0.1" min="0" value={form.discount} onChange={(e) => set("discount", e.target.value)} /></Field>
             <Field label={T("energy.field.uses")}><Input type="number" min="1" value={form.uses} onChange={(e) => set("uses", e.target.value)} /></Field>
+            <Field label={T("energy.field.until")} hint={T("energy.field.untilHint")}>
+              <Input type="date" min={hoje(1)} value={form.until} onChange={(e) => set("until", e.target.value)} />
+            </Field>
           </Layer>
           <Layer title={T("energy.layer.risk")} note={T("energy.layer.riskNote")}>
             <Field label={T("energy.field.coverageMin")}><Input type="number" value={form.coverageMin} onChange={(e) => set("coverageMin", e.target.value)} /></Field>
@@ -128,7 +144,8 @@ export function Issuer({ locale, methods, reload }) {
             </Field>
           </Layer>
           {result && <Panel tone={result.tone} className="px-4 py-3 font-mono text-[12.5px]">{result.text}</Panel>}
-          <Button disabled={busy || !methods.length || !form.method} type="submit">{busy ? T("energy.issuing") : T("energy.issue.button")}</Button>
+          <Button disabled={busy || !methods.length || !form.method || !futura} type="submit">{busy ? T("energy.issuing") : T("energy.issue.button")}</Button>
+          {!futura && <p className="font-mono text-[11.5px] text-deny-ink">{T("energy.field.untilPast")}</p>}
           {methods.length > 0 && !form.method && (
             <p className="font-mono text-[11.5px] text-stone-500">{T("energy.chooseMethodHint")}</p>
           )}
