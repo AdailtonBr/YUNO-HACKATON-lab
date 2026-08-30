@@ -24,7 +24,19 @@ export function Issuer({ locale, methods, reload }) {
     submarket: "SECO", source: "convencional", structure: "fixo", term: 24,
     volume: 42000, total: 1100000000, discount: 2, coverageMin: 95, coverageMax: 105,
     flexibility: 10, takeOrPay: 90, pld: 40000000, rating: "A-", operation: "novo_contrato",
-    netSaving: 5000000, uses: 2, method: methods[0]?.methodId ?? "",
+    netSaving: 5000000, uses: 2,
+    // Vazio, e vazio de proposito.
+    //
+    // Antes isto era `methods[0]?.methodId`, avaliado na montagem -- quando a
+    // carteira ainda nao tinha carregado.  O campo ficava "" para sempre, o
+    // select EXIBIA a primeira conta como se estivesse escolhida, e o envio
+    // usava a primeira conta.  Com duas cadastradas, o mandato saia pagando
+    // pela que ninguem apontou.
+    //
+    // Com que dinheiro se paga e decisao do humano.  E a mesma regra que o
+    // `docs/09` impoe ao agente ("o agente nao escolhe como voce paga"), e o
+    // Portal nao pode ser a porta dos fundos dela.
+    method: "",
   });
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
@@ -34,7 +46,8 @@ export function Issuer({ locale, methods, reload }) {
     agentId: AGENT_ID,
     mode: "autonomo",
     currency: "BRL",
-    paymentMethodId: form.method || methods[0]?.methodId,
+    // Sem `|| methods[0]`: uma escolha que ninguem fez nao e uma escolha.
+    paymentMethodId: form.method,
     maxUses: asNumber(form.uses),
     expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
     constraints: [
@@ -108,14 +121,17 @@ export function Issuer({ locale, methods, reload }) {
           <Layer title={T("energy.layer.integrity")} note={T("energy.layer.integrityNote")}>
             <div className="rounded border border-stone-200 bg-stone-50 px-3 py-2.5 font-mono text-[12px] text-stone-600">{T("energy.noCommission")}</div>
             <Field label={T("energy.field.payment")}>
-              <Select value={form.method || methods[0]?.methodId || ""} onChange={(e) => set("method", e.target.value)}>
-                {!methods.length && <option value="">{T("energy.noMethod")}</option>}
+              <Select value={form.method} onChange={(e) => set("method", e.target.value)}>
+                <option value="">{methods.length ? T("energy.chooseMethod") : T("energy.noMethod")}</option>
                 {methods.map((method) => <option key={method.methodId} value={method.methodId}>{method.label}</option>)}
               </Select>
             </Field>
           </Layer>
           {result && <Panel tone={result.tone} className="px-4 py-3 font-mono text-[12.5px]">{result.text}</Panel>}
-          <Button disabled={busy || !methods.length} type="submit">{busy ? T("energy.issuing") : T("energy.issue.button")}</Button>
+          <Button disabled={busy || !methods.length || !form.method} type="submit">{busy ? T("energy.issuing") : T("energy.issue.button")}</Button>
+          {methods.length > 0 && !form.method && (
+            <p className="font-mono text-[11.5px] text-stone-500">{T("energy.chooseMethodHint")}</p>
+          )}
         </div>
         <aside className="h-fit rounded-lg border border-amber-200 bg-amber-50 p-5">
           <Label>{T("energy.notIncluded.title")}</Label>
