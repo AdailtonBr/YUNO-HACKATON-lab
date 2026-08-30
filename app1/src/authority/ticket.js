@@ -1,6 +1,6 @@
 /**
  * Bilhete de compra (`purchaseTicket`) — como a identidade do agente é PROVADA.
- * Ver `docs/03-data-model-and-api.md` e §2.7 em `docs/DECISION-LOG.md`.
+ * Ver `docs/DATA-MODEL.md` e §2.7 em `docs/DECISION-LOG.md`.
  *
  * A Autoridade NÃO aceita a palavra da loja sobre quem é o agente.  A cada
  * tentativa o agente assina um bilhete descrevendo exatamente a compra pedida;
@@ -39,7 +39,7 @@ const sign = (encodedPayload, secret) =>
 
 export const newNonce = () => crypto.randomUUID();
 
-/** Ids opacos de ALTA ENTROPIA — nunca sequenciais (anti-enumeração, `docs/05`). */
+/** Ids opacos de ALTA ENTROPIA — nunca sequenciais (anti-enumeração, `docs/VERIFICATION.md`). */
 export const opaqueId = (prefix) => `${prefix}_${crypto.randomBytes(16).toString("hex")}`;
 
 /**

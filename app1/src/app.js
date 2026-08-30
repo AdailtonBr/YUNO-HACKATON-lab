@@ -20,7 +20,7 @@ export function buildApp() {
   app.get("/health", (_req, res) => res.json({ ok: true }));
 
   // Dois PAPEIS, um deploy. O agente fala com a Autoridade por HTTP, como
-  // qualquer outro cliente -- ele nao alcanca o banco dela (ver docs/02).
+  // qualquer outro cliente -- ele nao alcanca o banco dela (ver docs/ARCHITECTURE.md).
   app.use(buildRouter());
   // A vertical de energia em router proprio: quatro frentes construindo em
   // paralelo, e endpoint novo em arquivo compartilhado e conflito garantido.

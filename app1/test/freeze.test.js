@@ -2,7 +2,7 @@
  * O teste do CONGELAMENTO (Fase 0).
  *
  * Quatro frentes vão construir em paralelo sobre os contratos congelados em
- * `docs/12-vocabulario-energia.md`.  Se esses contratos não fecharem entre si,
+ * `docs/ENERGY-VOCABULARY.md`.  Se esses contratos não fecharem entre si,
  * o erro só aparece no dia da integração — com quatro pessoas já tendo
  * construído por cima.  Este arquivo existe para que isso não aconteça.
  *

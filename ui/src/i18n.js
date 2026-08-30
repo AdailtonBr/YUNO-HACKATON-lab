@@ -518,7 +518,15 @@ export const EVENT_LABEL = {
   },
 };
 
+/*
+ * Dois vocabularios, de propriedades diferentes.
+ *
+ * valido/recusado/escalado sao o VEREDITO DA AUTORIDADE -- o que de fato
+ * aconteceu.  eligible/rejected sao a triagem do AGENTE antes de tentar: ele
+ * acha que cabe, ou nem vale a chamada.  Sao coisas distintas, e a tela nao
+ * pode fundi-las: a triagem do agente nao autoriza nada.
+ */
 export const DECISION_LABEL = {
-  en: { valido: "allowed", recusado: "denied", escalado: "escalated" },
-  pt: { valido: "permitido", recusado: "negado", escalado: "escalado" },
+  en: { valido: "allowed", recusado: "denied", escalado: "escalated", eligible: "fits the mandate", rejected: "outside the mandate" },
+  pt: { valido: "permitido", recusado: "negado", escalado: "escalado", eligible: "cabe no mandato", rejected: "fora do mandato" },
 };

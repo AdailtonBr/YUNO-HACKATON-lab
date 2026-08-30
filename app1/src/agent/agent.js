@@ -3,7 +3,7 @@
  *
  * Repare em como este módulo conversa com o resto: **só por HTTP**.  Ele não
  * importa `models.js`, não abre o Mongo, não chama `evaluate` para decidir nada.
- * A fronteira do `docs/02` ("o agente lê, a Autoridade escreve") não é
+ * A fronteira do `docs/ARCHITECTURE.md` ("o agente lê, a Autoridade escreve") não é
  * disciplina de quem escreve o código — é o que este arquivo consegue alcançar.
  *
  * O que o agente tem: a própria credencial (para assinar o bilhete) e o id do
@@ -11,7 +11,7 @@
  * ao `paymentMethodRef`, e qualquer influência sobre a resposta da verificação.
  *
  * Esta é a parte determinística (buscar, comparar, comprar).  A conversa em
- * linguagem natural com o humano é a Fase 5 (`docs/07-build-plan.md`).
+ * linguagem natural com o humano é a Fase 5 (`README.md`).
  */
 
 import { issueTicket, newNonce } from "../authority/ticket.js";
@@ -19,7 +19,7 @@ import { issueTicket, newNonce } from "../authority/ticket.js";
 /**
  * Os operadores, do lado do agente.  São os mesmos nomes do motor e é uma cópia
  * deliberada: o agente **não importa** o motor para decidir nada, senão a
- * fronteira do `docs/02` viraria disciplina em vez de arquitetura.  Esta cópia
+ * fronteira do `docs/ARCHITECTURE.md` viraria disciplina em vez de arquitetura.  Esta cópia
  * só filtra o que vale a pena TENTAR; a que decide vive na Autoridade.
  *
  * Exportado porque `cycle-log.js` monta a tabela de comparação do ciclo com os

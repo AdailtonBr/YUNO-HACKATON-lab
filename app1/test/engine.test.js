@@ -1,6 +1,6 @@
 /**
  * Testes do motor.  Puros: sem banco, sem rede — o motor é uma função pura.
- * É o que a banca vai estressar (ver `docs/07-build-plan.md`, Fase 1).
+ * É o que a banca vai estressar (ver `README.md`, Fase 1).
  */
 
 import test from "node:test";
@@ -340,7 +340,7 @@ test("mesmo motor, dados diferentes: assinatura de software ignora pais", () => 
 
 /* --------- escalar e uma PERGUNTA, e pergunta pode ter resposta -------- */
 /*
- * O `docs/04` sempre descreveu um mecanismo com duas origens: o mandato que
+ * O `docs/VERIFICATION.md` sempre descreveu um mecanismo com duas origens: o mandato que
  * exige um sim a cada compra (`mode`) e a regra que manda perguntar quando
  * falha (`on_fail`).  O codigo so honrava a primeira -- a segunda era um beco
  * sem saida: a Autoridade gravava a pendencia, o humano aprovava, e a tentativa

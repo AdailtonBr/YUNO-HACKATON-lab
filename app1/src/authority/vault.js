@@ -1,5 +1,5 @@
 /**
- * Cofre / PSP — MOCK.  Ver `docs/03` e D10.
+ * Cofre / PSP — MOCK.  Ver `docs/DATA-MODEL.md` e D10.
  *
  * O que é REAL aqui (e é o que a banca julga):
  *  - o `paymentMethodRef` vive no mandato, não no agente;

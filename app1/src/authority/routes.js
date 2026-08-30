@@ -1,5 +1,5 @@
 /**
- * Rotas da Autoridade.  Ver `docs/03-data-model-and-api.md`.
+ * Rotas da Autoridade.  Ver `docs/DATA-MODEL.md`.
  *
  * A separação que importa está nos middlewares: quem você é NUNCA vem do corpo.
  *  - loja   -> apiKey  -> merchantId

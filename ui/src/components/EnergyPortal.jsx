@@ -34,7 +34,7 @@ export function Issuer({ locale, methods, reload }) {
     // pela que ninguem apontou.
     //
     // Com que dinheiro se paga e decisao do humano.  E a mesma regra que o
-    // `docs/09` impoe ao agente ("o agente nao escolhe como voce paga"), e o
+    // `docs/ARCHITECTURE.md` impoe ao agente ("o agente nao escolhe como voce paga"), e o
     // Portal nao pode ser a porta dos fundos dela.
     method: "",
   });
@@ -145,12 +145,54 @@ export function Issuer({ locale, methods, reload }) {
   );
 }
 
-const toneFor = (decision) => decision === "valido" || decision === "allowed" ? "allow" : decision === "escalado" || decision === "escalate" ? "wait" : "deny";
+const toneFor = (decision) =>
+  decision === "valido" || decision === "allowed" || decision === "eligible" ? "allow"
+    : decision === "escalado" || decision === "escalate" ? "wait"
+    : "deny";
+
+/**
+ * Por que esta oferta caiu — a regra que decidiu, com o valor que veio.
+ *
+ * A ordem nao e arbitraria: uma REGRA DURA violada e o motivo real da recusa;
+ * uma escalada e "cabe, mas precisa de gente"; um atributo desconhecido e o
+ * o on_missing mordendo. Mostrar a primeira dura antes da escalada evita dizer
+ * "precisa de aprovacao" sobre uma oferta que ja estava fora do mandato.
+ */
+function motivoDaOferta(offer, locale) {
+  const pt = locale === "pt";
+  const mostra = (v) => (Array.isArray(v) ? v.join(", ") : typeof v === "boolean" ? String(v) : v);
+  const regra = offer.failures?.[0] ?? offer.escalations?.[0] ?? offer.unknowns?.[0];
+  if (!regra) return pt ? "passa em todas as regras" : "passes every rule";
+  if (regra.actual == null) {
+    return pt
+      ? `${regra.attr}: nao informado`
+      : `${regra.attr}: not reported`;
+  }
+  return `${regra.attr} ${regra.op} ${mostra(regra.value)} — ${pt ? "veio" : "got"} ${mostra(regra.actual)}`;
+}
 
 export function DailyCycle({ locale, cycle, trail }) {
   const T = (key) => t(locale, key);
   const snapshot = cycle?.cycle ?? cycle;
-  const offers = snapshot?.offers ?? snapshot?.comparison ?? [];
+
+  /*
+   * As ofertas vivem sob `mandates[].offers` -- uma avaliacao por mandato.
+   *
+   * Esta tela e escrita contra um formato que o ciclo nao produzia, e o
+   * fallback para o trilho escondia isso: ela mostrava o que JA tinha sido
+   * decidido, nao o que o agente considerou.  A diferenca e o produto: a
+   * tabela completa, com as nove ofertas e o porque de cada recusa, e onde o
+   * raciocinio aparece.  O trilho continua sendo o fallback quando ainda nao
+   * houve ciclo nenhum.
+   */
+  const doCiclo = (snapshot?.mandates ?? []).flatMap((run) =>
+    (run.offers ?? []).map((offer) => ({
+      ...offer,
+      decision: offer.verdict,
+      reasonText: motivoDaOferta(offer, locale),
+    }))
+  );
+  const offers = doCiclo.length ? doCiclo : snapshot?.offers ?? snapshot?.comparison ?? [];
   const visibleOffers = offers.length ? offers : trail.filter((entry) => entry.event === "purchase_decision").map((entry) => ({
     name: entry.purchase?.name ?? entry.purchase?.productId,
     merchantId: entry.merchantId,

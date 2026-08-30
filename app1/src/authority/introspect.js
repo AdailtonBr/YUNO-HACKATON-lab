@@ -1,5 +1,5 @@
 /**
- * `/introspect` — o coração do sistema.  Ver `docs/03`, `docs/04`, `docs/05`.
+ * `/introspect` — o coração do sistema.  Ver `docs/DATA-MODEL.md`, `docs/VERIFICATION.md`, `docs/VERIFICATION.md`.
  *
  * Ordem das amarras (cada uma fecha um ataque nomeado nos docs):
  *   1. idempotência       -> retentativa não cobra duas vezes

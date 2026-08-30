@@ -50,7 +50,7 @@ export function mtm({ pContrato, pMercado, volumeRemanescente, piso = 0 }) {
 
 /**
  * Os atributos que a Autoridade injeta em `purchase.attributes` antes de
- * chamar `evaluate`.  A lista é a congelada em `docs/12-vocabulario-energia.md`.
+ * chamar `evaluate`.  A lista é a congelada em `docs/ENERGY-VOCABULARY.md`.
  *
  * @param offer     o que a COMERCIALIZADORA atestou sobre a oferta
  * @param contract  o contrato de suprimento vigente do cliente

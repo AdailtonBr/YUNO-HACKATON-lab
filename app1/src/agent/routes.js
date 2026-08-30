@@ -11,6 +11,7 @@
 import express from "express";
 import { searchCatalogs, compare, attemptPurchase } from "./agent.js";
 import { runTurn, windowHistory } from "./llm.js";
+import { latestCycle, runCycle } from "./watcher.js";
 
 // Lidos a cada chamada, não na carga do módulo: os testes sobem tudo em portas
 // efêmeras, e config lida cedo demais congela endereços que ainda não existem.
@@ -50,6 +51,37 @@ export function buildAgentRouter() {
   const r = express.Router();
 
   const storesFor = (includeFake) => (includeFake ? [...knownStores(), unregisteredStore()] : knownStores());
+
+  /**
+   * O ultimo ciclo diario, como DADO -- nao como texto formatado.
+   *
+   * A tela renderiza os campos; o agente nao decide como ela desenha.  E se
+   * ninguem rodou um ciclo ainda (vigia desligado, ou o processo acabou de
+   * subir), devolvemos 204 em vez de um objeto vazio: "ainda nao aconteceu" e
+   * diferente de "aconteceu e nao deu nada".
+   */
+  r.get("/agent/cycles/latest", (_req, res) => {
+    const cycle = latestCycle();
+    if (!cycle) return res.status(204).end();
+    res.json(cycle);
+  });
+
+  /** Roda um ciclo AGORA, para a demo nao depender de esperar o relogio. */
+  r.post("/agent/cycles/run", async (_req, res) => {
+    const agent = agentCredential();
+    try {
+      const cycle = await runCycle({
+        stores: knownStores(),
+        agentId: agent.id,
+        agentSecret: agent.secret,
+        humanId: agent.humanId,
+        authorityUrl: authorityUrl(),
+      });
+      res.json(cycle);
+    } catch (e) {
+      res.status(502).json({ error: "cycle_failed", detail: e.message });
+    }
+  });
 
   r.get("/agent/catalogs", async (req, res) => {
     const items = await searchCatalogs(storesFor(req.query.includeUnregistered === "true"), req.query.q ?? "");

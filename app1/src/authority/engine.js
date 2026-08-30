@@ -1,5 +1,5 @@
 /**
- * Motor de constraints — o coração do sistema.  Ver `docs/04-constraint-engine.md`.
+ * Motor de constraints — o coração do sistema.  Ver `docs/VERIFICATION.md`.
  *
  * É uma FUNÇÃO PURA: recebe tudo o que precisa e não toca em I/O.  Quem busca o
  * mandato, o bilhete verificado e a eventual aprovação no banco é a Autoridade,
@@ -176,7 +176,7 @@ export function evaluate(mandate, purchase, ctx) {
       // Sem esta consulta, `on_fail: "escalate"` era um beco sem saída: a
       // Autoridade gravava a pendência, o humano aprovava, e a tentativa
       // seguinte escalava de novo — a mesma compra pendurada para sempre.  O
-      // `docs/04` sempre descreveu um mecanismo com duas origens; era o código
+      // `docs/VERIFICATION.md` sempre descreveu um mecanismo com duas origens; era o código
       // que só honrava uma delas (a do `mode`).
       //
       // O sim é o mesmo de sempre: estreito (mesmo mandato, loja, produto,

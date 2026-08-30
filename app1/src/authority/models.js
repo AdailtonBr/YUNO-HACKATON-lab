@@ -1,10 +1,10 @@
 /**
- * Schemas do Mongo.  Ver `docs/03-data-model-and-api.md`.
+ * Schemas do Mongo.  Ver `docs/DATA-MODEL.md`.
  *
  * Convenção: todo `_id` é uma STRING opaca de alta entropia (`opaqueId`), nunca
  * sequencial — um id opaco só é seguro se for imprevisível (anti-enumeração).
  * De brinde, id imprevisível é também a chave de particionamento ideal quando
- * isto escalar (ver `docs/08-scaling.md`).
+ * isto escalar (ver `docs/SCALING.md`).
  */
 
 import mongoose from "mongoose";

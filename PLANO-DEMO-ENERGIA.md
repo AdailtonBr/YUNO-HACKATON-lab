@@ -10,7 +10,7 @@
 > ## ✅ A Fase 0 está FEITA e em `main`. Pode começar.
 >
 > `git pull` e siga o passo 2. Os contratos congelados estão em
-> [`docs/12-vocabulario-energia.md`](docs/12-vocabulario-energia.md), e
+> [`docs/ENERGY-VOCABULARY.md`](docs/ENERGY-VOCABULARY.md), e
 > `app1/test/freeze.test.js` (14 testes) trava os números da demo. **125 testes verdes.**
 
 1. ~~Uma pessoa executa a Fase 0 e faz merge em `main`.~~ **Feito.**
@@ -69,7 +69,7 @@ uma constraint ou um atributo derivado.
 > tentativa seguinte escalava de novo — **para sempre**. Só `mode: "aprovacao"` consultava a aprovação.
 > Como a nossa alçada (R$50k → gestor) é um `on_fail: escalate`, o **teste de fogo nº 1 não podia passar**.
 >
-> Não era feature nova: o `docs/04` sempre descreveu *"um mecanismo, duas origens"*, e era o código que
+> Não era feature nova: o `docs/VERIFICATION.md` sempre descreveu *"um mecanismo, duas origens"*, e era o código que
 > só honrava uma delas. Bug pré-existente do B2C, nunca exercitado porque o e2e antigo só usava o
 > caminho do `mode`.
 >
@@ -295,7 +295,7 @@ Quatro desvios, todos por um motivo que apareceu ao executar:
 <details>
 <summary>O que a Fase 0 entregou, item a item</summary>
 
-1. `docs/12-vocabulario-energia.md` — copiar a seção "Contratos congelados" deste documento.
+1. `docs/ENERGY-VOCABULARY.md` — copiar a seção "Contratos congelados" deste documento.
 2. `app1/src/authority/models.js` — **todas** as mudanças de schema de uma vez:
    - `mandates` ganha `parentMandateId`, `version` (default 1), `supersedes` (default null);
    - `merchants` ganha `rating`, `garantia`, `whitelisted`;

@@ -4,7 +4,7 @@
  * Cada uma guarda o catálogo num formato interno DIFERENTE, de propósito, e
  * **nenhum nome de campo se repete entre as três**.  Não é enfeite: é a prova
  * de que o adaptador basta.  Se as três falassem o mesmo idioma internamente,
- * o vocabulário comum de `docs/12-vocabulario-energia.md` não estaria sendo
+ * o vocabulário comum de `docs/ENERGY-VOCABULARY.md` não estaria sendo
  * testado por nada — estaria sendo assumido.
  *
  *   volt_andina    português, R$/MWh em reais decimais

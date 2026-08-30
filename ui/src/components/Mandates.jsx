@@ -1,6 +1,6 @@
 /**
  * O registro do humano: o que ele autorizou, quanto já foi usado, e o freio.
- * Ver `docs/07-build-plan.md`, Fase 3.
+ * Ver `README.md`, Fase 3.
  *
  * Esta tela **não cria** mandato.  Criar é confirmar uma proposta na tela de
  * propostas pendentes — o mandato limita o agente, e quem o cria não pode ser

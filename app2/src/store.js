@@ -1,5 +1,5 @@
 /**
- * Uma loja (merchant).  Ver `docs/02` e `docs/03`.
+ * Uma loja (merchant).  Ver `docs/ARCHITECTURE.md` e `docs/DATA-MODEL.md`.
  *
  * O que a loja FAZ:
  *  - descreve os próprios produtos no vocabulário comum (adaptador);

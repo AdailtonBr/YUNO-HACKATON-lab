@@ -43,20 +43,16 @@ Estas não são negociáveis. Qualquer implementação que as viole está errada
 - **Anti-site-fake = allow-list de merchants autenticados** na Autoridade. Credenciadora externa ficou **fora de escopo**.
 - **Quantidade: `price` é o unitário, `total` é o teto de gasto.** `total` (`price × quantity`) é atributo atestado, e **é o teto de `total` que limita gasto** — `price lte 15000` sozinho deixaria vinte unidades saírem por R$3.000 sem violar regra nenhuma. Quantidade e total são **assinados no bilhete** e a Autoridade **refaz a conta**. **Mandato sem regra de `total` compra UMA unidade** (esquecer bloqueia); a Autoridade **não** migra mandato antigo copiando `price` para `total`. `maxUses` conta compras, não unidades. Ver D19.
 
-## Ordem de implementação
+## Estado
 
-Siga `docs/07-build-plan.md`. Resumo: **fluxo feliz de ponta a ponta primeiro**, depois casos feios, depois bonus. Não comece pelos bonus.
+**O sistema está construído: 228 testes verdes**, incluindo os 12 testes de fogo do enunciado
+(`fire-drill.test.js`) e 24 ataques adversariais (`adversarial.test.js`).
 
-> **Todas as fases estão feitas (134 testes verdes).** A lista abaixo fica como registro da ordem em que
-> foi construído. O que falta **não é código**: slides, diagrama exportado e o Decision Log em formato de
-> entrega.
+A vertical é **recontratação de energia no ACL** — o caso B2C de varejo que originou o projeto vive em
+outro repositório. O motor de constraints **não mudou uma linha** no pivô: as seis camadas do mandato
+entraram como dado.
 
-1. Autoridade + motor de constraints (com testes unitários cedo).
-2. Cofre/PSP mock (cartão + Pix).
-3. Trusted Surface (UI de criação/revogação, mandato em linguagem natural derivada do JSON).
-4. Duas lojas + adaptadores de vocabulário.
-5. Agente (**OpenAI API**) — conversa, descobre atributos que variam, propõe, compara, compra.
-6. Casos feios (recusar vs escalar) e bonus (disputa, condições ricas, agente adversarial).
+O que falta **não é código**: slides e o diagrama de arquitetura exportado.
 
 ## Real vs Mock
 
@@ -65,16 +61,20 @@ Siga `docs/07-build-plan.md`. Resumo: **fluxo feliz de ponta a ponta primeiro**,
 
 ## Mapa dos docs
 
-- `docs/01-hackathon.md` — o desafio, deliverables, critérios, resultados esperados.
-- `docs/02-architecture.md` — papéis, fluxo (mermaid), modelo de confiança.
-- `docs/03-data-model-and-api.md` — schemas do Mongo e contratos de endpoint.
-- `docs/04-constraint-engine.md` — o motor (`evaluate`), operadores, `on_missing`/`on_fail`, portão de aprovação, exemplos.
-- `docs/05-security-and-ugly-cases.md` — casos feios, ataques, defesas.
-- `docs/DECISION-LOG.md` — **o Decision Log** (deliverable, em inglês): o que escolhemos, o que rejeitamos, e o que abrimos mão de propósito.
-- `docs/07-build-plan.md` — build faseado, real vs mock, roteiro da demo.
-- `docs/08-scaling.md` — caminho de escala do modelo de id opaco (não implementado no MVP; existe para defender "e em escala?").
-- `docs/09-agent.md` — o agente: cérebro (LLM) + mãos (tools) + corpo (orquestrador), o loop, e por que as decisões do modelo são sugestões.
-- `docs/11-fluxo-producao.md` — a compra de ponta a ponta e onde entra a Yuno (execução do pagamento, depois do "sim").
+**Tudo em `docs/` e o `README` estão em inglês** — é a entrega. Este arquivo e o material de preparação
+da equipe (`DEFESA.md`, `IDENTIDADE-E-DISPUTA.md`) ficam em PT-BR de propósito.
+
+| | |
+|---|---|
+| `README.md` | o desafio, como rodar, como funciona, o roteiro da demo, real vs mock |
+| `docs/DECISION-LOG.md` | **o Decision Log** (deliverable): o que escolhemos, o que rejeitamos, o que abrimos mão |
+| `docs/ARCHITECTURE.md` | papéis, fluxo ponta a ponta (mermaid), modelo de confiança, quem atesta o quê, onde entra a Yuno |
+| `docs/VERIFICATION.md` | o motor, as nove barreiras, cada ataque e onde ele morre, os sete elos da disputa |
+| `docs/DATA-MODEL.md` | coleções do Mongo e contratos de endpoint |
+| `docs/ENERGY-VOCABULARY.md` | o vocabulário congelado, quem atesta cada atributo, os números da demo |
+| `docs/SCALING.md` | caminho de escala do id opaco — não está no MVP; existe para responder "e em escala?" |
+| `DEFESA.md` · `IDENTIDADE-E-DISPUTA.md` | preparação da equipe, em PT-BR |
+| `PLANO-DEMO-ENERGIA.md` | histórico: como as quatro frentes construíram em paralelo |
 
 ## Estilo de trabalho
 
