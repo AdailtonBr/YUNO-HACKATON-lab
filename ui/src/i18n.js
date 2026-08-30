@@ -7,14 +7,21 @@
  */
 
 const en = {
-  brand: "Agentic Mandate",
+  brand: "Procura",
+  brandTag: "Bounded authority",
 
   status: { active: "mandate active", revoked: "revoked", expired: "expired", exhausted: "used up", none: "no mandate" },
   policy: { deny: "refuse", escalate: "ask me", allow: "ignore" },
   outcome: { allowed: "allowed", denied: "denied", waiting: "awaiting you" },
   verdict: { ok: "ok", violated: "violated", missing: "not reported", missingAllowed: "skipped", invalidRule: "invalid rule", notEvaluated: "not evaluated" },
 
-  topbar: { uses: "purchases used", agent: "agent", pick: "which mandate the agent acts under" },
+  topbar: {
+    uses: "purchases used",
+    agent: "agent",
+    pick: "which mandate the agent acts under",
+    themeDark: "Switch to dark",
+    themeLight: "Switch to light",
+  },
 
   nav: {
     section: "Supervision",
@@ -239,22 +246,54 @@ const en = {
     option: { conventional: "Conventional", fixed: "Fixed", indexed: "Indexed", hybrid: "Hybrid", newContract: "New contract", renewal: "Renewal", termination: "Termination" },
     guarantee: "A bank guarantee is required.", noCommission: "Third-party commission must be declared and equal to zero.", noMethod: "No settlement method registered", issued: "Mandate issued.", issuing: "Issuing…",
     notIncluded: { title: "Not in this mandate", lead: "Anything outside these limits remains a human decision.", items: ["No authority to terminate the current contract.", "No undisclosed third-party commission.", "No self-declared merchant rating or guarantee.", "No automatic approval above the stated governance threshold.", "No payment instrument exposed to the agent or merchant."] },
-    cycle: { title: "Daily energy cycle", note: "The agent compares the market; the Authority decides what may proceed.", empty: "No daily cycle has been recorded yet.", offer: "Offer", merchant: "Merchant", price: "Effective price", outcome: "Outcome", reason: "Why" },
-    curve: { title: "Market curve", note: "This is a live reference. The Authority reads it at the instant it decides.", empty: "No market curves are available.", value: "BRL per MWh", save: "Update curve", saving: "Updating…" },
+    cycle: {
+      title: "Daily energy cycle",
+      note: "The agent compares the market; the Authority decides what may proceed.",
+      empty: "No daily cycle has been recorded yet.",
+      waiting: "Waiting for the first cycle of the day.",
+      offer: "Offer", merchant: "Merchant", price: "Effective price", outcome: "Outcome", reason: "Why",
+      curveRead: "Market curve", standing: "Standing contract", window: "Notice window",
+      windowMissed: "closed", days: "days left", alert: "alert", evaluated: "Offers evaluated", attempted: "attempted",
+      effective: "Effective price", commission: "third-party commission", vsCurve: "vs. curve",
+      net: "Net saving", gross: "gross", penalty: "penalty",
+      onlyAuthority: "Only the Authority attests:",
+      authoritySaid: "The Authority answered",
+      steps: "What the agent did, in order",
+      verdict: { eligible: "eligible", rejected: "rejected", discarded: "no gain" },
+    },
+    curve: {
+      title: "Market curve",
+      note: "This is a live reference. The Authority reads it at the instant it decides.",
+      empty: "No market curves are available.",
+      value: "Reference price",
+      save: "Update curve", saving: "Updating…", reset: "Reset",
+      live: "live", unsaved: "unsaved",
+      meaning: "What qualifies today",
+      explain: "The mandate requires at least {pct}% below the curve. Move the curve and this number moves with it — no mandate is re-issued.",
+      noMandate: "No mandate in focus carries a relative price ceiling.",
+      oracle: "In production this value comes from an exchange feed. What the architecture asserts is the topology: the reference belongs to the Authority, never to the counterparty.",
+    },
   },
 
   errors: { authorityDown: "Cannot reach the Authority on :3001 — is it running?" },
 };
 
 const pt = {
-  brand: "Mandato Agêntico",
+  brand: "Procura",
+  brandTag: "Poder com limite",
 
   status: { active: "mandato ativo", revoked: "revogado", expired: "expirado", exhausted: "esgotado", none: "sem mandato" },
   policy: { deny: "recusar", escalate: "me perguntar", allow: "ignorar" },
   outcome: { allowed: "permitido", denied: "negado", waiting: "aguardando você" },
   verdict: { ok: "ok", violated: "violada", missing: "não informado", missingAllowed: "ignorada", invalidRule: "regra inválida", notEvaluated: "não avaliada" },
 
-  topbar: { uses: "compras usadas", agent: "agente", pick: "sob qual mandato o agente age" },
+  topbar: {
+    uses: "compras usadas",
+    agent: "agente",
+    pick: "sob qual mandato o agente age",
+    themeDark: "Mudar para escuro",
+    themeLight: "Mudar para claro",
+  },
 
   nav: {
     section: "Supervisão",
@@ -479,8 +518,33 @@ const pt = {
     option: { conventional: "Convencional", fixed: "Fixo", indexed: "Indexado", hybrid: "Híbrido", newContract: "Novo contrato", renewal: "Renovação", termination: "Rescisão" },
     guarantee: "Garantia bancária obrigatória.", noCommission: "A comissão de terceiro deve ser declarada e igual a zero.", noMethod: "Nenhum meio de liquidação cadastrado", issued: "Mandato emitido.", issuing: "Emitindo…",
     notIncluded: { title: "Não está neste mandato", lead: "Tudo fora destes limites continua sendo decisão humana.", items: ["Nenhuma autoridade para rescindir o contrato vigente.", "Nenhuma comissão de terceiro não declarada.", "Nenhum rating ou garantia autoafirmado pela comercializadora.", "Nenhuma aprovação automática acima da alçada declarada.", "Nenhum instrumento de pagamento exposto ao agente ou à comercializadora."] },
-    cycle: { title: "Ciclo diário de energia", note: "O agente compara o mercado; a Autoridade decide o que pode seguir.", empty: "Nenhum ciclo diário foi registrado ainda.", offer: "Oferta", merchant: "Comercializadora", price: "Preço efetivo", outcome: "Resultado", reason: "Por quê" },
-    curve: { title: "Curva de mercado", note: "Esta é uma referência viva. A Autoridade a lê no instante em que decide.", empty: "Não há curvas de mercado disponíveis.", value: "R$ por MWh", save: "Atualizar curva", saving: "Atualizando…" },
+    cycle: {
+      title: "Ciclo diário de energia",
+      note: "O agente compara o mercado; a Autoridade decide o que pode seguir.",
+      empty: "Nenhum ciclo diário foi registrado ainda.",
+      waiting: "Esperando o primeiro ciclo do dia.",
+      offer: "Oferta", merchant: "Comercializadora", price: "Preço efetivo", outcome: "Resultado", reason: "Por quê",
+      curveRead: "Curva de mercado", standing: "Contrato vigente", window: "Janela de denúncia",
+      windowMissed: "fechada", days: "dias restantes", alert: "alerta", evaluated: "Ofertas avaliadas", attempted: "tentadas",
+      effective: "Preço efetivo", commission: "comissão de terceiro", vsCurve: "vs. curva",
+      net: "Economia líquida", gross: "bruta", penalty: "multa",
+      onlyAuthority: "Só a Autoridade atesta:",
+      authoritySaid: "A Autoridade respondeu",
+      steps: "O que o agente fez, na ordem",
+      verdict: { eligible: "elegível", rejected: "recusada", discarded: "sem ganho" },
+    },
+    curve: {
+      title: "Curva de mercado",
+      note: "Esta é uma referência viva. A Autoridade a lê no instante em que decide.",
+      empty: "Não há curvas de mercado disponíveis.",
+      value: "Preço de referência",
+      save: "Atualizar curva", saving: "Atualizando…", reset: "Desfazer",
+      live: "ao vivo", unsaved: "não salvo",
+      meaning: "O que passa hoje",
+      explain: "O mandato exige pelo menos {pct}% abaixo da curva. Mexa na curva e este número anda junto — nenhum mandato é reemitido.",
+      noMandate: "Nenhum mandato em foco tem teto de preço relativo.",
+      oracle: "Em produção este valor vem de um feed de mercado. O que a arquitetura afirma é a topologia: a referência é da Autoridade, nunca da contraparte.",
+    },
   },
 
   errors: { authorityDown: "Não consigo falar com a Autoridade em :3001 — ela está rodando?" },

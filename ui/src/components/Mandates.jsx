@@ -27,7 +27,7 @@ const POLICY_TONE = { deny: "deny", escalate: "wait", allow: "mute" };
 const Chevron = ({ open }) => (
   <svg
     viewBox="0 0 16 16"
-    className={`h-3.5 w-3.5 shrink-0 text-stone-400 transition-transform ${open ? "rotate-90" : ""}`}
+    className={`h-3.5 w-3.5 shrink-0 text-ink-faint transition-transform ${open ? "rotate-90" : ""}`}
     fill="none"
     stroke="currentColor"
     strokeWidth="1.75"
@@ -44,13 +44,13 @@ function MandateRow({ locale, m, level = 0, childrenCount = 0, selected, onSelec
   return (
     <Panel
       tone={dead ? "mute" : undefined}
-      className={`overflow-hidden ${selected ? "ring-2 ring-stone-900/10" : ""}`}
+      className={`overflow-hidden ${selected ? "ring-2 ring-brand-line" : ""}`}
       style={{ marginLeft: `${level * 18}px` }}
     >
       {/* ------------------------ fechado: de relance ------------------------ */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-stone-50/70"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-surface-2"
       >
         <Chevron open={open} />
 
@@ -58,22 +58,22 @@ function MandateRow({ locale, m, level = 0, childrenCount = 0, selected, onSelec
           {T(`status.${m.status}`)}
         </Chip>
 
-        <span className={`min-w-0 flex-1 truncate font-sans text-[13.5px] ${dead ? "text-stone-500" : "text-stone-800"}`}>
+        <span className={`min-w-0 flex-1 truncate font-sans text-[13.5px] ${dead ? "text-ink-dim" : "text-ink"}`}>
           {m.humanReadable}
         </span>
 
-        <span className="shrink-0 font-mono text-[12px] tabular-nums text-stone-500">
+        <span className="shrink-0 font-mono text-[12px] tabular-nums text-ink-dim">
           {m.usedCount}/{m.maxUses}
         </span>
         {selected && (
-          <span className="shrink-0 label-tech text-stone-400!">{T("mandates.inUse")}</span>
+          <span className="shrink-0 label-tech text-ink-faint!">{T("mandates.inUse")}</span>
         )}
       </button>
 
       {/* ------------------------ aberto: para conferir ---------------------- */}
       {open && (
         <>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-stone-200/70 px-4 py-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line px-4 py-3 sm:grid-cols-4">
             {[
               [T("mandates.uses"), `${m.usedCount} / ${m.maxUses}`],
               [T("mandates.mode"), T(m.mode === "aprovacao" ? "mandates.modeApproval" : "mandates.modeAutonomous")],
@@ -84,20 +84,20 @@ function MandateRow({ locale, m, level = 0, childrenCount = 0, selected, onSelec
             ].map(([k, v]) => (
               <div key={k}>
                 <Label>{k}</Label>
-                <p className="mt-0.5 font-mono text-[12.5px] text-stone-800">{v}</p>
+                <p className="mt-0.5 font-mono text-[12.5px] text-ink">{v}</p>
               </div>
             ))}
           </div>
           {childrenCount > 0 && (
-            <p className="border-t border-stone-200/70 px-4 py-2 font-mono text-[11.5px] text-amber-800">
+            <p className="border-t border-line px-4 py-2 font-mono text-[11.5px] text-wait-ink">
               {T("mandates.cascade").replace("{n}", childrenCount)}
             </p>
           )}
 
-          <div className="overflow-x-auto border-t border-stone-200/70">
+          <div className="overflow-x-auto border-t border-line">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-stone-200/70 text-left">
+                <tr className="border-b border-line text-left">
                   <th className="px-4 py-2"><Label>{T("mandates.rule")}</Label></th>
                   <th className="px-3 py-2"><Label>{T("mandates.limit")}</Label></th>
                   <th className="px-3 py-2"><Label>{T("mandates.ifMissing")}</Label></th>
@@ -106,12 +106,12 @@ function MandateRow({ locale, m, level = 0, childrenCount = 0, selected, onSelec
               </thead>
               <tbody>
                 {(m.constraints ?? []).map((c, i) => (
-                  <tr key={i} className="border-b border-stone-100 last:border-0">
-                    <td className="whitespace-nowrap px-4 py-2 font-mono text-[12.5px] text-stone-700">
-                      <span className="mr-2 text-stone-400">{String(i + 1).padStart(2, "0")}</span>
+                  <tr key={i} className="border-b border-line last:border-0">
+                    <td className="whitespace-nowrap px-4 py-2 font-mono text-[12.5px] text-ink-dim">
+                      <span className="mr-2 text-ink-faint">{String(i + 1).padStart(2, "0")}</span>
                       {c.attr}
                     </td>
-                    <td className="px-3 py-2 font-mono text-[12.5px] text-stone-600">
+                    <td className="px-3 py-2 font-mono text-[12.5px] text-ink-dim">
                       {c.op} {isMoneyAttr(c.attr) ? money(c.value, m.currency, locale) : String(c.value)}
                     </td>
                     <td className="px-3 py-2">
@@ -126,7 +126,7 @@ function MandateRow({ locale, m, level = 0, childrenCount = 0, selected, onSelec
             </table>
           </div>
 
-          <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200/70 px-4 py-3">
+          <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3">
             <Mono value={m.mandateId} copy />
             <div className="flex gap-2">
               {!dead && !selected && (

@@ -70,13 +70,13 @@ export default function Wallet({ locale, methods, addresses, reload }) {
           {methods.length === 0 ? (
             <Empty>{T("wallet.noMethods")}</Empty>
           ) : (
-            <ul className="divide-y divide-stone-100">
+            <ul className="divide-y divide-line">
               {methods.map((m) => (
                 <li key={m.methodId} className="flex items-center justify-between gap-3 px-5 py-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <Chip tone={m.rail === "card" ? "allow" : "wait"}>{m.rail}</Chip>
-                      <span className="font-mono text-[14px] text-stone-900">{m.label}</span>
+                      <span className="font-mono text-[14px] text-ink">{m.label}</span>
                     </div>
                     <p className="mt-1">
                       <Mono value={m.methodId} />
@@ -90,7 +90,7 @@ export default function Wallet({ locale, methods, addresses, reload }) {
             </ul>
           )}
 
-          <div className="space-y-3 border-t border-stone-200/70 px-5 py-4">
+          <div className="space-y-3 border-t border-line px-5 py-4">
             <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-3">
               <Field label={T("wallet.rail")}>
                 <Select value={card.rail} onChange={(e) => setCard({ ...card, rail: e.target.value })}>
@@ -121,11 +121,11 @@ export default function Wallet({ locale, methods, addresses, reload }) {
           {addresses.length === 0 ? (
             <Empty>{T("wallet.noAddresses")}</Empty>
           ) : (
-            <ul className="divide-y divide-stone-100">
+            <ul className="divide-y divide-line">
               {addresses.map((a) => (
                 <li key={a.addressId} className="flex items-center justify-between gap-3 px-5 py-3">
                   <div className="min-w-0">
-                    <span className="font-sans text-[14px] font-semibold text-stone-900">{a.label}</span>
+                    <span className="font-sans text-[14px] font-semibold text-ink">{a.label}</span>
                     <p className="mt-1">
                       <Mono value={a.addressId} />
                     </p>
@@ -138,7 +138,7 @@ export default function Wallet({ locale, methods, addresses, reload }) {
             </ul>
           )}
 
-          <div className="space-y-3 border-t border-stone-200/70 px-5 py-4">
+          <div className="space-y-3 border-t border-line px-5 py-4">
             <Field label={T("wallet.addressLabel")} hint={T("wallet.addressLabelHint")}>
               <Input
                 value={addr.label}
@@ -160,7 +160,7 @@ export default function Wallet({ locale, methods, addresses, reload }) {
         </Panel>
       </div>
 
-      <p className="mt-4 font-mono text-[11.5px] text-stone-500">{T("wallet.footer")}</p>
+      <p className="mt-4 font-mono text-[11.5px] text-ink-dim">{T("wallet.footer")}</p>
     </>
   );
 }

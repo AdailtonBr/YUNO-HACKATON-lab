@@ -1,60 +1,271 @@
 @import "tailwindcss";
 
-/*
+/* ==================================================================== *
+ * PROCURA — sistema de design
+ *
  * Duas famílias, com papéis distintos e consistentes:
- *  - sans  -> títulos, botões, prosa dirigida à humana
- *  - mono  -> tudo que é DADO: regras, valores, ids, hashes, rótulos técnicos
+ *   sans -> títulos, botões, prosa dirigida à pessoa
+ *   mono -> tudo que é DADO: regras, valores, ids, hashes, rótulos técnicos
  * A separação é semântica, não decorativa: se está em mono, é algo que o
- * sistema mediu ou decidiu, e que a humana pode conferir.
+ * sistema mediu ou decidiu, e que a pessoa pode conferir contra o mandato.
+ *
+ * Cor é semântica também.  Nenhuma tela escolhe um cinza: ela escolhe um
+ * PAPEL (`surface`, `ink`, `line`), e o papel resolve para claro ou escuro.
+ * É o que permite os dois temas sem duplicar uma linha de componente.
+ * ==================================================================== */
+
+/* ------------------------------- tema claro ------------------------------ */
+
+:root {
+  color-scheme: light;
+
+  /* superfícies, do fundo para a frente */
+  --bg: #f4f6f8;
+  --bg-grad: radial-gradient(1200px 600px at 15% -10%, #e6f5f3 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #eef1f6 0%, transparent 50%);
+  --surface: #ffffff;
+  --surface-2: #f2f4f7;
+  --surface-3: #e9edf2;
+  --scrim: rgb(15 23 32 / 0.44);
+
+  /* traços */
+  --line: #e3e8ee;
+  --line-strong: #cbd3dc;
+
+  /* tinta */
+  --ink: #0e1621;
+  --ink-dim: #5a6774;
+  --ink-faint: #8d98a5;
+  --ink-invert: #ffffff;
+
+  /* marca — o verde-azulado de "corrente elétrica" */
+  --brand: #0d7d72;
+  --brand-hover: #0a655d;
+  --brand-soft: #e2f4f1;
+  --brand-line: #a8ddd6;
+  --brand-ink: #05504a;
+
+  /* semântica de veredito */
+  --allow-bg: #e9f8f0;
+  --allow-line: #a5e0c4;
+  --allow-ink: #12664a;
+  --allow-dot: #10996e;
+
+  --deny-bg: #fdeceb;
+  --deny-line: #f5b9b5;
+  --deny-ink: #9c2a26;
+  --deny-dot: #d9403a;
+
+  --wait-bg: #fdf3e0;
+  --wait-line: #f0d199;
+  --wait-ink: #8a5a12;
+  --wait-dot: #dd9b23;
+
+  --shadow-sm: 0 1px 2px rgb(14 22 33 / 0.05);
+  --shadow: 0 1px 3px rgb(14 22 33 / 0.06), 0 8px 24px -12px rgb(14 22 33 / 0.12);
+  --shadow-lg: 0 24px 60px -24px rgb(14 22 33 / 0.28);
+}
+
+/* ------------------------------ tema escuro ------------------------------ */
+/*
+ * Não é o tema claro invertido.  No escuro a hierarquia vem da SUPERFÍCIE
+ * (mais perto = mais clara), não da sombra — sombra sobre fundo escuro não
+ * comunica nada.  E a marca clareia, porque um verde escuro sobre grafite
+ * some.
  */
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0a0e13;
+  --bg-grad: radial-gradient(1200px 600px at 15% -10%, #0c2a29 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #131a24 0%, transparent 50%);
+  --surface: #121922;
+  --surface-2: #19222d;
+  --surface-3: #212c39;
+  --scrim: rgb(2 5 9 / 0.72);
+
+  --line: #232e3b;
+  --line-strong: #33404f;
+
+  --ink: #e9eef4;
+  --ink-dim: #97a3b1;
+  --ink-faint: #6b7683;
+  --ink-invert: #0a0e13;
+
+  --brand: #2fd4bf;
+  --brand-hover: #5ce0d0;
+  --brand-soft: #0e2f2c;
+  --brand-line: #1c5a52;
+  --brand-ink: #7ce8d8;
+
+  --allow-bg: #0d2a20;
+  --allow-line: #1d5a44;
+  --allow-ink: #6fdaad;
+  --allow-dot: #34d399;
+
+  --deny-bg: #2a1315;
+  --deny-line: #6b2a2c;
+  --deny-ink: #f7a5a0;
+  --deny-dot: #f05252;
+
+  --wait-bg: #2a2011;
+  --wait-line: #6b5220;
+  --wait-ink: #f0c265;
+  --wait-dot: #eab308;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.5), 0 12px 32px -16px rgb(0 0 0 / 0.6);
+  --shadow-lg: 0 28px 70px -28px rgb(0 0 0 / 0.75);
+}
+
+/* ------------------- os papéis viram classes do Tailwind ----------------- */
+/*
+ * `--color-*` faz o Tailwind gerar `bg-surface`, `text-ink`, `border-line`…
+ * O valor é uma variável de runtime, então trocar o tema troca a cor sem
+ * recompilar e sem uma segunda árvore de classes `dark:`.
+ */
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
 
-  /* Semântica de cor. Verde = permitido, vermelho = negado, âmbar = espera. */
-  --color-allow-bg: #ecfdf5;
-  --color-allow-line: #a7f3d0;
-  --color-allow-ink: #065f46;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-scrim: var(--scrim);
 
-  --color-deny-bg: #fef2f2;
-  --color-deny-line: #fecaca;
-  --color-deny-ink: #991b1b;
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
 
-  --color-wait-bg: #fffbeb;
-  --color-wait-line: #fde68a;
-  --color-wait-ink: #92400e;
+  --color-ink: var(--ink);
+  --color-ink-dim: var(--ink-dim);
+  --color-ink-faint: var(--ink-faint);
+  --color-ink-invert: var(--ink-invert);
 
-  --color-shell: #fbfbfa;
-  --color-line: #e7e5e4;
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-line: var(--brand-line);
+  --color-brand-ink: var(--brand-ink);
+
+  --color-allow-bg: var(--allow-bg);
+  --color-allow-line: var(--allow-line);
+  --color-allow-ink: var(--allow-ink);
+  --color-allow-dot: var(--allow-dot);
+
+  --color-deny-bg: var(--deny-bg);
+  --color-deny-line: var(--deny-line);
+  --color-deny-ink: var(--deny-ink);
+  --color-deny-dot: var(--deny-dot);
+
+  --color-wait-bg: var(--wait-bg);
+  --color-wait-line: var(--wait-line);
+  --color-wait-ink: var(--wait-ink);
+  --color-wait-dot: var(--wait-dot);
+
+  --shadow-card: var(--shadow);
+  --shadow-pop: var(--shadow-lg);
 }
+
+/* ------------------------------- o corpo -------------------------------- */
 
 html,
 body,
 #root {
   height: 100%;
+  overflow: hidden; /* quem rola é o <main> do shell, não a página */
 }
 
 body {
   margin: 0;
-  background: var(--color-shell);
+  color: var(--ink);
+  background-color: var(--bg);
+  background-image: var(--bg-grad);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-sans);
 }
 
-/* Rótulo técnico: caixa alta, mono, espaçado. Aparece em toda a interface. */
+/*
+ * A troca de tema é animada, mas a transição só EXISTE durante a troca.
+ *
+ * Deixá-la permanente em `body *` custa caro numa árvore grande — o navegador
+ * passa a acompanhar mudança de cor em cada nó, inclusive nas que vêm de um
+ * re-render de dado, e a tela inteira fica com um rastro que ninguém pediu.
+ * O React liga esta classe por 200ms na troca e a desliga; fora disso, nada
+ * transiciona, e a interface responde seca.
+ */
+.theme-switching,
+.theme-switching * {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 160ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Foco visível e consistente — acessibilidade não é opcional numa tela que
+   autoriza gasto.  Só no teclado, para não sujar o clique do mouse. */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --------------------------- utilitários próprios ----------------------- */
+
+/** Rótulo técnico: caixa alta, mono, espaçado.  Aparece em toda a interface. */
 @utility label-tech {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-stone-500);
+  color: var(--ink-faint);
 }
+
+/** Número tabular: colunas de dinheiro que não dançam entre linhas. */
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/** Cartão padrão da interface. */
+@utility card {
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+/** Um respiro de marca no topo de um painel de destaque. */
+@utility brand-rule {
+  background-image: linear-gradient(90deg, var(--brand) 0%, transparent 70%);
+}
+
+/* ------------------------------ scrollbar ------------------------------- */
 
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
-  background: var(--color-stone-300);
+  background: var(--line-strong);
   border-radius: 99px;
-  border: 3px solid var(--color-shell);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-faint);
+  background-clip: content-box;
+}
+
+/* O select nativo herda o tema do sistema no Windows; forçamos o nosso. */
+select option {
+  background: var(--surface);
+  color: var(--ink);
 }

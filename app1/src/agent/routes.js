@@ -11,6 +11,7 @@
 import express from "express";
 import { searchCatalogs, compare, attemptPurchase } from "./agent.js";
 import { runTurn, windowHistory } from "./llm.js";
+import { latestCycle } from "./watcher.js";
 
 // Lidos a cada chamada, não na carga do módulo: os testes sobem tudo em portas
 // efêmeras, e config lida cedo demais congela endereços que ainda não existem.
@@ -50,6 +51,15 @@ export function buildAgentRouter() {
   const r = express.Router();
 
   const storesFor = (includeFake) => (includeFake ? [...knownStores(), unregisteredStore()] : knownStores());
+
+  /**
+   * O último ciclo diário, como o agente o montou.
+   *
+   * É leitura do rascunho DELE, e a rota deixa isso explícito devolvendo
+   * `cycle: null` quando ainda não houve nenhum — a tela mostra "esperando o
+   * primeiro ciclo", em vez de inventar uma tabela vazia que parece um erro.
+   */
+  r.get("/agent/cycles/latest", (_req, res) => res.json({ cycle: latestCycle() }));
 
   r.get("/agent/catalogs", async (req, res) => {
     const items = await searchCatalogs(storesFor(req.query.includeUnregistered === "true"), req.query.q ?? "");

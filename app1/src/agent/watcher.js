@@ -346,6 +346,18 @@ export async function attemptOffer({ mandate, offer, contract, curve, deps, quan
  * O intervalo é de DEMO.  Em produção o ciclo é diário, na janela de mesa do
  * §4.6 — e o número aqui não muda nada além de com que frequência se pergunta.
  */
+/**
+ * O último ciclo, para quem quiser olhar.
+ *
+ * Vive em memória e no processo do agente, e isso é a coisa certa: é o
+ * RASCUNHO do agente, não o registro da decisão.  O registro é o `audit_log`,
+ * que a Autoridade escreve e que sobrevive ao restart.  Perder isto num
+ * reinício não perde nada que alguém possa precisar depois — some a tabela de
+ * comparação, e o veredito continua no trilho.
+ */
+let lastCycle = null;
+export const latestCycle = () => lastCycle;
+
 export function startWatcher(deps) {
   const interval = Number(process.env.WATCHER_INTERVAL_MS ?? 5000);
   const maxMandates = Number(process.env.WATCHER_MAX_PURCHASES_PER_TICK ?? 5);
@@ -357,6 +369,7 @@ export function startWatcher(deps) {
     running = true;
     try {
       last = await runCycle({ ...deps, maxMandates });
+      lastCycle = last;
       for (const line of formatCycle(last)) console.log(`[cycle] ${line}`);
     } catch (e) {
       console.warn("[cycle] tick failed:", e.message);

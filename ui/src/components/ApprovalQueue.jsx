@@ -35,7 +35,7 @@ function countdown(expiresAt, locale) {
 const Chevron = ({ open }) => (
   <svg
     viewBox="0 0 16 16"
-    className={`h-3.5 w-3.5 shrink-0 text-amber-700/60 transition-transform ${open ? "rotate-90" : ""}`}
+    className={`h-3.5 w-3.5 shrink-0 text-wait-ink transition-transform ${open ? "rotate-90" : ""}`}
     fill="none"
     stroke="currentColor"
     strokeWidth="1.75"
@@ -54,8 +54,8 @@ function Attested({ locale, attributes = {} }) {
       <Label>{T("approvals.attested")}</Label>
       <div className="mt-1.5 flex flex-wrap gap-1.5">
         {rows.map(([k, v]) => (
-          <span key={k} className="rounded border border-stone-200 bg-white px-2 py-0.5 font-mono text-[11.5px] text-stone-600">
-            {k} <span className="text-stone-900">{String(v)}</span>
+          <span key={k} className="rounded border border-line bg-surface px-2 py-0.5 font-mono text-[11.5px] text-ink-dim">
+            {k} <span className="text-ink">{String(v)}</span>
           </span>
         ))}
       </div>
@@ -75,21 +75,21 @@ function ApprovalRow({ locale, a, busy, onApprove, onRefuse }) {
         </Chip>
         <div className="flex items-center gap-2">
           <Label>{T("approvals.expiresIn")}</Label>
-          <span className="font-mono text-[13px] font-medium text-amber-800">
+          <span className="font-mono text-[13px] font-medium text-wait-ink">
             {countdown(a.expiresAt, locale)}
           </span>
         </div>
       </header>
 
       {/* ---------------------- fechado: o que se decide ---------------------- */}
-      <div className="grid gap-4 border-y border-amber-200/70 bg-white/70 px-4 py-3.5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] lg:items-center">
+      <div className="grid gap-4 border-y border-wait-line bg-surface px-4 py-3.5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] lg:items-center">
         <button onClick={() => setOpen((o) => !o)} className="flex min-w-0 items-start gap-2.5 text-left">
           <Chevron open={open} />
           <span className="min-w-0">
-            <span className="block font-sans text-[15px] font-semibold text-stone-900">
+            <span className="block font-sans text-[15px] font-semibold text-ink">
               {a.name ?? a.productId}
             </span>
-            <span className="mt-0.5 block font-mono text-[12px] text-stone-500">
+            <span className="mt-0.5 block font-mono text-[12px] text-ink-dim">
               {a.merchantId}
               {a.attributes?.product_type ? ` · ${a.attributes.product_type}` : ""}
               {a.attributes?.ship_country ? ` · ${a.attributes.ship_country}` : ""}
@@ -98,11 +98,11 @@ function ApprovalRow({ locale, a, busy, onApprove, onRefuse }) {
                 O unitário fica embaixo, pequeno, como a conta que o explica —
                 nunca sozinho no lugar de destaque, onde seria lido como o
                 valor da compra. */}
-            <span className="mt-1.5 block font-mono text-[17px] font-medium text-stone-900">
+            <span className="mt-1.5 block font-mono text-[17px] font-medium text-ink">
               {money(a.total ?? a.price, a.currency, locale)}
             </span>
             {(a.quantity ?? 1) > 1 && (
-              <span className="mt-0.5 block font-mono text-[12px] text-stone-500">
+              <span className="mt-0.5 block font-mono text-[12px] text-ink-dim">
                 {a.quantity} × {money(a.price, a.currency, locale)}
               </span>
             )}
@@ -111,8 +111,8 @@ function ApprovalRow({ locale, a, busy, onApprove, onRefuse }) {
 
         <div className="min-w-0">
           <Label>{T("approvals.why")}</Label>
-          <p className="mt-1 font-mono text-[12.5px] leading-relaxed text-amber-900">{a.reasonText}</p>
-          <p className="mt-1 font-mono text-[11px] text-stone-400">
+          <p className="mt-1 font-mono text-[12.5px] leading-relaxed text-wait-ink">{a.reasonText}</p>
+          <p className="mt-1 font-mono text-[11px] text-ink-faint">
             {T(ORIGIN_KEY[a.origin] ?? "approvals.originFail")}
           </p>
         </div>
@@ -129,24 +129,24 @@ function ApprovalRow({ locale, a, busy, onApprove, onRefuse }) {
 
       {/* --------------- aberto: o que é, e sob qual autorização -------------- */}
       {open && (
-        <div className="space-y-4 border-b border-amber-200/70 bg-white px-4 py-4">
+        <div className="space-y-4 border-b border-wait-line bg-surface px-4 py-4">
           <Attested locale={locale} attributes={a.attributes} />
 
           {a.mandate && (
             <div>
               <Label>{T("approvals.underMandate")}</Label>
-              <p className="mt-1 font-sans text-[13.5px] leading-relaxed text-stone-800">
+              <p className="mt-1 font-sans text-[13.5px] leading-relaxed text-ink">
                 {a.mandate.humanReadable}
               </p>
-              <p className="mt-1 font-mono text-[11.5px] text-stone-500">
+              <p className="mt-1 font-mono text-[11.5px] text-ink-dim">
                 {T(`status.${a.mandate.status}`)} · {a.mandate.usedCount}/{a.mandate.maxUses} ·{" "}
                 {T(a.mandate.mode === "aprovacao" ? "mandates.modeApproval" : "mandates.modeAutonomous")}
               </p>
 
-              <div className="mt-2 overflow-x-auto rounded border border-stone-200">
+              <div className="mt-2 overflow-x-auto rounded border border-line">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-stone-200 bg-stone-50 text-left">
+                    <tr className="border-b border-line bg-surface-2 text-left">
                       <th className="px-3 py-1.5"><Label>{T("mandates.rule")}</Label></th>
                       <th className="px-3 py-1.5"><Label>{T("mandates.limit")}</Label></th>
                       <th className="px-3 py-1.5"><Label>{T("approvals.thisPurchase")}</Label></th>
@@ -156,14 +156,14 @@ function ApprovalRow({ locale, a, busy, onApprove, onRefuse }) {
                     {(a.mandate.constraints ?? []).map((c, i) => {
                       const actual = c.attr === "price" ? a.price : c.attr === "total" ? a.total ?? a.price : a.attributes?.[c.attr];
                       return (
-                        <tr key={i} className="border-b border-stone-100 last:border-0">
-                          <td className="whitespace-nowrap px-3 py-1.5 font-mono text-[12px] text-stone-700">{c.attr}</td>
-                          <td className="px-3 py-1.5 font-mono text-[12px] text-stone-600">
+                        <tr key={i} className="border-b border-line last:border-0">
+                          <td className="whitespace-nowrap px-3 py-1.5 font-mono text-[12px] text-ink-dim">{c.attr}</td>
+                          <td className="px-3 py-1.5 font-mono text-[12px] text-ink-dim">
                             {c.op} {isMoneyAttr(c.attr) ? money(c.value, a.currency, locale) : String(c.value)}
                           </td>
-                          <td className="px-3 py-1.5 font-mono text-[12px] text-stone-900">
+                          <td className="px-3 py-1.5 font-mono text-[12px] text-ink">
                             {actual === undefined ? (
-                              <span className="text-stone-300">—</span>
+                              <span className="text-ink-faint">—</span>
                             ) : isMoneyAttr(c.attr) ? (
                               money(actual, a.currency, locale)
                             ) : (
@@ -239,7 +239,7 @@ export default function ApprovalQueue({ locale, approvals, reload }) {
               onRefuse={act(a.approvalId, api.reject)}
             />
           ))}
-          <p className="font-mono text-[11.5px] text-stone-500">{T("approvals.footer")}</p>
+          <p className="font-mono text-[11.5px] text-ink-dim">{T("approvals.footer")}</p>
         </div>
       )}
     </>

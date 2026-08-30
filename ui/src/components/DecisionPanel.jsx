@@ -40,13 +40,13 @@ export default function DecisionPanel({ locale, trace = [], reasonText, outcome,
           <Label>{T("decision.rule")}</Label>
           <p
             className={`mt-1.5 font-mono text-[13.5px] leading-relaxed ${
-              tone === "deny" ? "text-red-800" : tone === "wait" ? "text-amber-900" : "text-emerald-900"
+              tone === "deny" ? "text-deny-ink" : tone === "wait" ? "text-wait-ink" : "text-allow-ink"
             }`}
           >
             {reasonText}
           </p>
           {decidingIndex >= 0 && decidingIndex < trace.length - 1 && (
-            <p className="mt-1.5 font-mono text-[11.5px] leading-relaxed text-stone-500">
+            <p className="mt-1.5 font-mono text-[11.5px] leading-relaxed text-ink-dim">
               {T("decision.stopped")}
             </p>
           )}
@@ -54,10 +54,10 @@ export default function DecisionPanel({ locale, trace = [], reasonText, outcome,
       )}
 
       {trace.length > 0 && (
-        <div className="overflow-x-auto border-t border-current/10 bg-white/60">
+        <div className="overflow-x-auto border-t border-current/10 bg-surface">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-stone-200/80 text-left">
+              <tr className="border-b border-line text-left">
                 <th className="px-4 py-2">
                   <Label>{T("decision.rule_")}</Label>
                 </th>
@@ -81,23 +81,23 @@ export default function DecisionPanel({ locale, trace = [], reasonText, outcome,
                 return (
                   <tr
                     key={`${r.attr}-${i}`}
-                    className={`border-b border-stone-100 last:border-0 ${decided ? "bg-red-50/60" : ""}`}
+                    className={`border-b border-line last:border-0 ${decided ? "bg-deny-bg" : ""}`}
                   >
-                    <td className="whitespace-nowrap px-4 py-2 font-mono text-[12.5px] text-stone-700">
-                      <span className="mr-2 text-stone-400">{String(i + 1).padStart(2, "0")}</span>
+                    <td className="whitespace-nowrap px-4 py-2 font-mono text-[12.5px] text-ink-dim">
+                      <span className="mr-2 text-ink-faint">{String(i + 1).padStart(2, "0")}</span>
                       {r.attr}
                     </td>
-                    <td className="px-3 py-2 font-mono text-[12.5px] text-stone-600">
+                    <td className="px-3 py-2 font-mono text-[12.5px] text-ink-dim">
                       {r.attr} {r.op} {fmtValue(r.attr, r.value, currency, locale)}
                     </td>
                     {!compact && (
                       <td
                         className={`px-3 py-2 font-mono text-[12.5px] ${
-                          decided ? "font-medium text-red-700" : "text-stone-700"
+                          decided ? "font-medium text-deny-ink" : "text-ink-dim"
                         }`}
                       >
                         {r.verdict === "not_evaluated" ? (
-                          <span className="text-stone-300">—</span>
+                          <span className="text-ink-faint">—</span>
                         ) : (
                           fmtValue(r.attr, r.actual, currency, locale)
                         )}
