@@ -275,7 +275,15 @@ test("RFQ de SE/CO 2027 devolve exatamente UMA oferta por comercializadora — a
     assert.equal(r.body.items[0].productId, canonical(key).productId, key);
     // O pedido volta ecoado: cotacao vazia sem a pergunta ao lado e
     // indistinguivel de loja fora do ar.
-    assert.deepEqual(r.body.rfq, { submercado: "SECO", periodo: "2027-01/2027-12", volume_mwh: 42000 });
+    // A operacao entra no eco porque faz parte da pergunta: pedir cotacao de
+    // SUPRIMENTO e pedir para RESCINDIR sao dois pedidos diferentes, e o
+    // registro do ciclo tem que saber qual dos dois foi feito.
+    assert.deepEqual(r.body.rfq, {
+      submercado: "SECO",
+      periodo: "2027-01/2027-12",
+      volume_mwh: 42000,
+      operacao: "novo_contrato",
+    });
   }
 });
 
@@ -328,9 +336,22 @@ test("volume invalido e ERRO do pedido, nao cotacao vazia", async () => {
 });
 
 test("sem filtro nenhum, o catalogo inteiro — e a busca literal antiga continua servindo", async () => {
+  // "Sem filtro" e sem filtro de submercado, periodo ou volume.  A OPERACAO
+  // tem um padrao, e o padrao e suprimento: a oferta de migracao com rescisao
+  // da incumbente existe, mas nao se oferece a quem nao perguntou por ela --
+  // senao o ciclo diario a tentaria todo dia, e escalaria todo dia.
   const tudo = await get("volt_andina", "/catalog");
   assert.equal(tudo.body.items.length, 3);
-  assert.deepEqual(tudo.body.rfq, { submercado: null, periodo: null, volume_mwh: null });
+  assert.deepEqual(tudo.body.rfq, {
+    submercado: null,
+    periodo: null,
+    volume_mwh: null,
+    operacao: "novo_contrato",
+  });
+
+  const rescisao = await get("volt_andina", "/catalog?operacao=rescisao");
+  assert.equal(rescisao.body.items.length, 1);
+  assert.equal(rescisao.body.items[0].operacao, "rescisao");
 
   // A Frente C ainda chama /catalog?q= enquanto reescreve o agente.
   const busca = await get("volt_andina", "/catalog?q=Sul");

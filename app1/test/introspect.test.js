@@ -529,7 +529,10 @@ test("o trilho registra o ciclo de vida, nao so a compra", async () => {
   await post(`/mandates/${mandateId}/revoke`, {}, asHuman);
   await buy(mandateId);
 
-  const trail = await get(`/audit?mandateId=${mandateId}`).then((r) => r.json());
+  // O trilho pertence ao titular: desde a Frente D, /audit exige a sessao.  Um
+  // id de mandato conhecido nao pode virar uma janela para o trilho de outra
+  // empresa, entao a leitura e escopada por quem pergunta.
+  const trail = await get(`/audit?mandateId=${mandateId}`, asHuman).then((r) => r.json());
   const events = trail.map((e) => e.event);
   assert.ok(events.includes("mandate_created"));
   assert.ok(events.includes("purchase_decision"));

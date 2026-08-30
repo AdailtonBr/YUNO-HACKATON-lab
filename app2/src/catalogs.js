@@ -86,6 +86,33 @@ const CATALOG_VOLT = [
   },
 ];
 
+/*
+ * A oferta de MIGRACAO: a Volt assume o suprimento e cuida de rescindir o
+ * contrato com a incumbente.  Existe porque a operacao e atestada pela LOJA,
+ * nunca declarada pelo agente -- um agente que "dissesse" rescisao seria
+ * ignorado, pelo mesmo motivo que ele nao pode dizer o proprio preco.
+ *
+ * Nao aparece num RFQ normal: quem pede cotacao de suprimento nao esta pedindo
+ * para rescindir nada.  Ela so sai com ?operacao=rescisao -- e quando sai, o
+ * mandato escala, porque rescindir e irreversivel e nao se delega a um relogio.
+ */
+CATALOG_VOLT.push({
+  id: "VOLT-SECO-2027-MIG",
+  titulo: "Volt Andina · SE/CO 2027 · migracao com rescisao da incumbente",
+  preco_reais: 244.0,
+  comissao_reais: 0,
+  submercado: "SECO",
+  fonte: "convencional",
+  estrutura: "fixo",
+  periodo: "2027-01/2027-12",
+  prazo: 12,
+  flex: 10,
+  top: 90,
+  volume_disponivel: 60000,
+  operacao: "rescisao",
+  ativo: true,
+});
+
 const voltAdapter = {
   toCommon: (p) => ({
     productId: p.id,
@@ -101,7 +128,8 @@ const voltAdapter = {
     prazo_meses: p.prazo,
     flexibilidade_pct: p.flex,
     take_or_pay_pct: p.top,
-    operacao: "novo_contrato",
+    // Lido do registro: e a loja que atesta que operacao esta sendo oferecida.
+    operacao: p.operacao ?? "novo_contrato",
     stock: p.volume_disponivel,
   }),
   // O painel fala em preço EFETIVO; a comissão fica onde está e a energia

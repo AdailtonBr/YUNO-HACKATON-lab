@@ -54,6 +54,7 @@ const agentDeps = () => ({
   agentId: DEMO.agentId,
   agentSecret: DEMO.agentSecret,
   authorityUrl: authorityBase,
+  humanId: DEMO.humanId, // para ler o contrato vigente quando o mundo nao vem injetado
   world: world(),
 });
 
@@ -120,7 +121,7 @@ const verificationsOf = (merchantId) =>
  * 1 — Deixa o dia rodar
  * =================================================================== */
 
-test("1 · o dia roda: a Cerrado cai pelo rating e a Volt Andina ESCALA com R$210.000", { todo: "Frente A: introspect ainda não injeta os atributos derivados (rating, economia_liquida_brl)" }, async () => {
+test("1 · o dia roda: a Cerrado cai pelo rating e a Volt Andina ESCALA com R$210.000", async () => {
   const cycle = await runCycle(agentDeps());
   const run = cycle.mandates.find((m) => m.mandateId === MANDATE_OPERATIONAL_ID);
 
@@ -139,7 +140,7 @@ test("1 · o dia roda: a Cerrado cai pelo rating e a Volt Andina ESCALA com R$21
  * 2 — Sobe a curva de 249 para 262
  * =================================================================== */
 
-test("2 · a curva sobe para R$262 e a MESMA oferta passa a valer R$756.000", { todo: "Frente A: PATCH /curves não existe (routes.energy.js)" }, async () => {
+test("2 · a curva sobe para R$262 e a MESMA oferta passa a valer R$756.000", async () => {
   const r = await fetch(`${authorityBase}/curves/SECO`, {
     method: "PATCH",
     headers: { "content-type": "application/json", "x-human-id": DEMO.humanId },
@@ -190,7 +191,7 @@ test("3 · revogado ao vivo: o ciclo para de tentar E uma tentativa forçada mor
  * 4 — Muda o teto de desconto de 2% para 5%
  * =================================================================== */
 
-test("4 · mudar o teto de 2% para 5% cria um mandato v2 e desqualifica a Volt", { todo: "Frente A: POST /mandates/:id/supersede não existe" }, async () => {
+test("4 · mudar o teto de 2% para 5% cria um mandato v2 e desqualifica a Volt", async () => {
   const r = await fetch(`${authorityBase}/mandates/${MANDATE_OPERATIONAL_ID}/supersede`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-human-id": DEMO.humanId },
@@ -222,7 +223,7 @@ test("4 · mudar o teto de 2% para 5% cria um mandato v2 e desqualifica a Volt",
  * 5 — Melhora a oferta da Cerrado para R$210
  * =================================================================== */
 
-test("5 · o MELHOR preço do dia é recusado — e a razão é o rating, não o preço", { todo: "Frente A: sem o `rating` injetado, a recusa sai como attribute_missing e não como a regra que decidiu" }, async () => {
+test("5 · o MELHOR preço do dia é recusado — e a razão é o rating, não o preço", async () => {
   // A banca mexe no painel do operador da Cerrado.
   const cerrado = stores.find((s) => s.id === "cerrado_power");
   const r = await fetch(`${cerrado.url}/catalog/CERR-SECO-2027`, {
@@ -296,7 +297,7 @@ test("6b · a Helios anuncia R$239 e o preço EFETIVO é R$253 — é o que a to
  * 7 — Força uma compra de 130% da carga
  * =================================================================== */
 
-test("7 · 130% da carga é recusado por COBERTURA, não por teto de volume", { todo: "Frente A: `cobertura_pct` ainda não é injetado no introspect" }, async () => {
+test("7 · 130% da carga é recusado por COBERTURA, não por teto de volume", async () => {
   const mandate = await mandateDoc();
   const excesso = Math.round(DEMO.contract.consumoPrevistoPeriodoMwh * 1.3); // 54.600 MWh
 
@@ -362,8 +363,17 @@ test("8b · o mandato não é tocado por uma tentativa forjada", async () => {
  * 9 — Pede a rescisão do contrato vigente
  * =================================================================== */
 
-test("9 · rescisão nunca é automática: escala, com a multa aberta na tela", { todo: "Frente A: precisa dos derivados; e a Frente B precisa publicar uma oferta com operacao=rescisao" }, async () => {
-  const rescisao = { ...(await offerFrom("volt_andina")), operacao: "rescisao" };
+test("9 · rescisão nunca é automática: escala, com a multa aberta na tela", async () => {
+  // A operacao vem ATESTADA pela comercializadora, nunca declarada pelo agente.
+  // A versao anterior deste teste sobrescrevia `operacao` no objeto do agente e
+  // era silenciosamente ignorada pela loja, que remonta os atributos a partir do
+  // produto real -- exatamente como deve ser.  Entao a rescisao tem que existir
+  // como oferta publicada: a Volt oferece assumir o suprimento e cuidar da
+  // rescisao da incumbente.  Ela nao sai num RFQ de suprimento; so por nome.
+  const volt = stores.find((st) => st.id === "volt_andina");
+  const cotacao = await fetch(`${volt.url}/catalog?operacao=rescisao`).then((r) => r.json());
+  assert.equal(cotacao.items.length, 1, "a Volt precisa publicar a oferta de migracao");
+  const rescisao = { ...cotacao.items[0], merchantId: volt.id, merchantName: cotacao.name, storeUrl: volt.url };
   const { result } = await attemptOffer({
     mandate: await mandateDoc(),
     offer: rescisao,
@@ -418,13 +428,29 @@ test("10 · alerta em D−30/−15/−7, e passada a janela a oportunidade é da
  * 11 — "Eu nunca autorizei essa troca"
  * =================================================================== */
 
-test("11 · a disputa responde com os elos CALCULADOS, não afirmados", { todo: "Frente A: `delegation_valid` e `curve_at_decision` (dispute.js) + a compra precisa concluir" }, async () => {
-  const cycle = await runCycle(agentDeps());
-  const run = cycle.mandates.find((m) => m.mandateId === MANDATE_OPERATIONAL_ID);
-  assert.ok(run.attempts.length, "precisa de uma compra para contestar");
+test("11 · a disputa responde com os elos CALCULADOS, não afirmados", async () => {
+  // Uma disputa precisa de uma COBRANÇA, e a alçada faz o ciclo escalar.  Então
+  // o gestor tem que dizer sim antes de existir o que contestar — contestar uma
+  // tentativa recusada devolve "nada foi cobrado", que é a resposta certa para
+  // outra pergunta.
+  await runCycle(agentDeps());
+  const pendentes = await fetch(`${authorityBase}/approvals`, {
+    headers: { "x-human-id": DEMO.humanId },
+  }).then((r) => r.json());
+  assert.ok(pendentes.length, "a alçada tem que ter criado uma pendência");
+
+  await fetch(`${authorityBase}/approvals/${pendentes[0].approvalId}/approve`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-human-id": DEMO.humanId },
+  });
+
+  // O ciclo seguinte conclui: a chave de idempotência é derivada e estável
+  // enquanto o uso não avança, então a retentativa encontra o sim.
+  await runCycle(agentDeps());
 
   const trilho = await auditFor(MANDATE_OPERATIONAL_ID);
-  const compra = trilho.find((e) => e.event === "purchase_decision");
+  const compra = trilho.find((e) => e.event === "purchase_decision" && e.decision === "valido");
+  assert.ok(compra, "precisa de uma compra concluída para contestar");
 
   const r = await fetch(`${authorityBase}/disputes`, {
     method: "POST",
@@ -433,7 +459,7 @@ test("11 · a disputa responde com os elos CALCULADOS, não afirmados", { todo: 
   });
   const disputa = await r.json();
 
-  const elos = disputa.evidence.map((e) => e.link);
+  const elos = disputa.evidence.map((e) => e.key);
   assert.ok(elos.includes("delegation_valid"), "o outorgante tinha poderes na data");
   assert.ok(elos.includes("curve_at_decision"), "a curva usada foi a congelada no trilho");
 });
@@ -442,7 +468,7 @@ test("11 · a disputa responde com os elos CALCULADOS, não afirmados", { todo: 
  * 12 — Revoga o mandato-pai
  * =================================================================== */
 
-test("12 · revogar o mandato da diretoria derruba o operacional em cascata", { todo: "Frente A: hierarchy.js ainda não é resolvido dentro do introspect" }, async () => {
+test("12 · revogar o mandato da diretoria derruba o operacional em cascata", async () => {
   await Mandate.updateOne({ _id: MANDATE_UMBRELLA_ID }, { $set: { revoked: true } });
 
   // O filho continua com `revoked: false` no documento — e é assim que tem que
