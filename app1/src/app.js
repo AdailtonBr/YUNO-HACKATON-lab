@@ -1,5 +1,6 @@
 import express from "express";
 import { buildRouter } from "./authority/routes.js";
+import { buildEnergyRouter } from "./authority/routes.energy.js";
 import { buildAgentRouter } from "./agent/routes.js";
 
 /** App sem `listen`, para os testes montarem em porta efemera. */
@@ -21,6 +22,9 @@ export function buildApp() {
   // Dois PAPEIS, um deploy. O agente fala com a Autoridade por HTTP, como
   // qualquer outro cliente -- ele nao alcanca o banco dela (ver docs/02).
   app.use(buildRouter());
+  // A vertical de energia em router proprio: quatro frentes construindo em
+  // paralelo, e endpoint novo em arquivo compartilhado e conflito garantido.
+  app.use(buildEnergyRouter());
   app.use(buildAgentRouter());
   return app;
 }

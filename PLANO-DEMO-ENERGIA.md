@@ -63,6 +63,19 @@ Isso não é elegância — é o que torna 4 frentes paralelas seguras. `engine.
 tudo depende. **Se você acha que precisa mexer nele, pare e avise o grupo.** Quase sempre a resposta é
 uma constraint ou um atributo derivado.
 
+> ### ⚠️ O motor foi tocado UMA vez, na Frente A. Leia antes de rebasear.
+>
+> `on_fail: "escalate"` era um beco sem saída: a Autoridade gravava a pendência, o humano aprovava, e a
+> tentativa seguinte escalava de novo — **para sempre**. Só `mode: "aprovacao"` consultava a aprovação.
+> Como a nossa alçada (R$50k → gestor) é um `on_fail: escalate`, o **teste de fogo nº 1 não podia passar**.
+>
+> Não era feature nova: o `docs/04` sempre descreveu *"um mecanismo, duas origens"*, e era o código que
+> só honrava uma delas. Bug pré-existente do B2C, nunca exercitado porque o e2e antigo só usava o
+> caminho do `mode`.
+>
+> São cinco linhas, e o motor volta a ficar congelado. **Se sua branch saiu antes de
+> `frente-a-nucleo`, rebaseie.**
+
 ### Duas armadilhas conhecidas
 
 **1. O motor para na primeira regra que falha.** O teste 6 quer a Helios rejeitada "por comissão *e* por

@@ -22,6 +22,16 @@ export const PLD_TETO_ESTRUTURAL_BRL_MWH = 78527;
 const round2 = (n) => Math.round(n * 100) / 100;
 
 /**
+ * O desconto da oferta contra a curva, em pontos percentuais.
+ *
+ * Exportado, e nao inline, porque a disputa RECALCULA este numero a partir da
+ * curva congelada no trilho.  Duas copias da formula acabariam divergindo, e a
+ * divergencia apareceria como fraude onde so havia bug.
+ */
+export const descontoVsCurva = (curvaBrlMwh, precoEfetivoBrlMwh) =>
+  round2(((curvaBrlMwh - precoEfetivoBrlMwh) / curvaBrlMwh) * 100);
+
+/**
  * Multa rescisória mark-to-market, em centavos.
  *
  * A parte que sai indeniza a contraparte pela diferença entre o preço do
@@ -77,7 +87,7 @@ export function derivedAttributes({ offer, contract, curve, merchant, quantity }
 
     // Do mercado, lido no instante da decisão.
     curva_ref_brl_mwh: curve.precoBrlMwh,
-    desconto_vs_curva_pct: round2(((curve.precoBrlMwh - precoEfetivo) / curve.precoBrlMwh) * 100),
+    desconto_vs_curva_pct: descontoVsCurva(curve.precoBrlMwh, precoEfetivo),
 
     // Da troca.
     multa_rescisoria_brl: multa,
@@ -103,3 +113,38 @@ export function diasParaDenuncia(contract, now = new Date()) {
   const limite = new Date(fim.getTime() - contract.denunciaDias * 24 * 60 * 60 * 1000);
   return Math.ceil((limite - now) / (24 * 60 * 60 * 1000));
 }
+
+/* ------------------------------------------------------------------ *
+ * Utilitários da fronteira: o que a Autoridade precisa saber para
+ * decidir SE enriquece, e com quê.  Puros, como o resto do módulo.
+ * ------------------------------------------------------------------ */
+
+/**
+ * A curva é indexada por submercado e ano de suprimento.
+ * `"2027-01/2027-12"` -> `"SECO:2027"`.
+ */
+export const curveKeyFor = (submercado, periodoSuprimento) =>
+  `${submercado}:${String(periodoSuprimento ?? "").slice(0, 4)}`;
+
+/**
+ * Isto é uma oferta de energia?
+ *
+ * A pergunta existe porque a Autoridade é genérica: ela autoriza mandatos, e
+ * energia é uma vertical.  Quem diz que a compra é de energia é o DADO — se a
+ * oferta traz `preco_energia`, há o que derivar; se não traz, não há.
+ *
+ * O que torna essa checagem segura, e não um atalho: pular o enriquecimento
+ * NUNCA faz uma compra passar.  Se o mandato tem regra sobre `rating` ou
+ * `desconto_vs_curva_pct` e os atributos não vierem, o `on_missing: "deny"` do
+ * motor recusa.  A rede de proteção já estava armada — esquecer bloqueia.
+ */
+export const isEnergyOffer = (attributes) => attributes?.preco_energia !== undefined;
+
+/**
+ * O preço efetivo tem que FECHAR: é a mesma exigência que o motor já faz sobre
+ * o total (`total === price × quantity`).  Um preço efetivo afirmado não é um
+ * preço efetivo verificado, e é por dentro dessa fresta que a comissão oculta
+ * entraria: bastaria anunciar R$239, cobrar R$253 e declarar zero de comissão.
+ */
+export const effectivePriceAddsUp = (purchase) =>
+  purchase.price === purchase.attributes.preco_energia + purchase.attributes.comissao_terceiro;

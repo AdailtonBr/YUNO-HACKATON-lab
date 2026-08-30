@@ -337,3 +337,67 @@ test("mesmo motor, dados diferentes: assinatura de software ignora pais", () => 
   });
   assert.equal(evaluate(m, p, ctx(m, p, { ticket: ticketFor(m, p) })).valid, true);
 });
+
+/* --------- escalar e uma PERGUNTA, e pergunta pode ter resposta -------- */
+/*
+ * O `docs/04` sempre descreveu um mecanismo com duas origens: o mandato que
+ * exige um sim a cada compra (`mode`) e a regra que manda perguntar quando
+ * falha (`on_fail`).  O codigo so honrava a primeira -- a segunda era um beco
+ * sem saida: a Autoridade gravava a pendencia, o humano aprovava, e a tentativa
+ * seguinte escalava de novo, para sempre.
+ */
+
+test("on_fail escalate COM o sim humano: a compra passa", () => {
+  const m = mandate({
+    constraints: [{ attr: "price", op: "lte", value: 10000, on_missing: "deny", on_fail: "escalate" }],
+  });
+  const p = purchase({ price: 10300, attributes: { category: "calcado", price: 10300 } });
+
+  // Sem o sim, pergunta.
+  assert.equal(evaluate(m, p, ctx(m, p)).action, "escalate");
+
+  // Com o sim daquela compra exata, passa.
+  const r = evaluate(m, p, ctx(m, p, { approval: approval(m, p) }));
+  assert.equal(r.valid, true);
+});
+
+test("a regra dispensada fica NOMEADA no trace, nao apagada", () => {
+  // "As regras passaram" e "uma regra falhou e alguem assumiu a
+  // responsabilidade" sao fatos diferentes.  A disputa precisa distinguir.
+  const m = mandate({
+    constraints: [
+      { attr: "category", op: "eq", value: "calcado", on_missing: "deny", on_fail: "deny" },
+      { attr: "price", op: "lte", value: 10000, on_missing: "deny", on_fail: "escalate" },
+    ],
+  });
+  const p = purchase({ price: 10300, attributes: { category: "calcado", price: 10300 } });
+  const r = evaluate(m, p, ctx(m, p, { approval: approval(m, p) }));
+
+  assert.equal(r.valid, true);
+  assert.deepEqual(r.trace.map((t) => t.verdict), ["ok", "approved_by_human"]);
+});
+
+test("o sim dispensa AQUELA regra, e nao as seguintes", () => {
+  // Aprovar um estouro de preco nao autoriza comprar da China junto.
+  const m = mandate({
+    constraints: [
+      { attr: "price", op: "lte", value: 10000, on_missing: "deny", on_fail: "escalate" },
+      { attr: "ship_country", op: "eq", value: "BR", on_missing: "deny", on_fail: "deny" },
+    ],
+  });
+  const p = purchase({ price: 10300, attributes: { category: "calcado", price: 10300, ship_country: "CN" } });
+  const r = evaluate(m, p, ctx(m, p, { approval: approval(m, p) }));
+
+  assert.equal(r.valid, false);
+  assert.equal(r.action, "reject");
+  assert.equal(r.reason.params.attr, "ship_country");
+});
+
+test("o sim de OUTRA compra nao dispensa regra nenhuma", () => {
+  const m = mandate({
+    constraints: [{ attr: "price", op: "lte", value: 10000, on_missing: "deny", on_fail: "escalate" }],
+  });
+  const p = purchase({ price: 10300, attributes: { category: "calcado", price: 10300 } });
+  const a = approval(m, p, { price: 30000 }); // aprovou outro valor
+  assert.equal(evaluate(m, p, ctx(m, p, { approval: a })).action, "escalate");
+});

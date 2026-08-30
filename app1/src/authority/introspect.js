@@ -5,16 +5,23 @@
  *   1. idempotência       -> retentativa não cobra duas vezes
  *   2. mandato existe     -> id opaco de alta entropia, sem enumeração
  *   3. bilhete verificado -> a LOJA não afirma quem é o agente; ela transporta a prova
+ *   3.5 enriquecimento    -> a AUTORIDADE atesta o que a vendedora não pode
+ *   3.6 cadeia de delegação -> revogar o guarda-chuva mata os derivados
  *   4. motor (puro)       -> constraints, estado vivo, dono, portão de aprovação
  *   5. nonce + consumo atômicos -> replay e TOCTOU
  *   6. cobrança           -> e COMPENSAÇÃO se o cofre recusar
  *   7. audit_log          -> append-only, base da disputa
  */
 
-import { Mandate, Agent, Approval, UsedNonce, AuditLog, Idempotency, nextAuditSeq } from "./models.js";
+import {
+  Mandate, Agent, Approval, UsedNonce, AuditLog, Idempotency, nextAuditSeq,
+  Merchant, SupplyContract, MarketCurve,
+} from "./models.js";
 import { verifyTicket, peekAgentId, opaqueId } from "./ticket.js";
 import { evaluate } from "./engine.js";
 import { charge } from "./vault.js";
+import { curveKeyFor, isEnergyOffer, effectivePriceAddsUp, derivedAttributes } from "./energy.js";
+import { loadAncestors, effectiveStatus } from "./hierarchy.js";
 
 const APPROVAL_TTL_MS = 15 * 60 * 1000;
 
@@ -72,6 +79,61 @@ export async function introspect(body, { merchantId }) {
   if (!verified.ok) return remember(reject(verified.code));
   const ticket = verified.payload;
 
+  // 3.5) Enriquecimento: a invariante 4, torcida.
+  //
+  //      A comercializadora atesta a própria oferta, porque é a fonte de verdade
+  //      sobre ela.  O RATING dela, não: é juízo sobre si mesma, e foi falha de
+  //      contraparte que quebrou 54 fornecedores no Reino Unido entre 2018 e
+  //      2025.  A economia da troca, também não: depende do contrato vigente do
+  //      cliente, dado que a vendedora não tem e não deveria ter.
+  //
+  //      Quem diz que a compra é de energia é o DADO.  E pular o enriquecimento
+  //      nunca faz nada passar: sem os atributos, o `on_missing: "deny"` do
+  //      motor recusa.  A rede já estava armada -- esquecer bloqueia.
+  if (isEnergyOffer(purchase?.attributes)) {
+    if (!effectivePriceAddsUp(purchase)) return remember(reject("commission_math_mismatch"));
+
+    const contract = await SupplyContract.findOne({
+      humanId: mandate.humanId,
+      submercado: purchase.attributes.submercado,
+      ativo: true,
+    }).lean();
+    if (!contract) return remember(reject("no_active_contract"));
+
+    // A curva é lida AGORA, nunca assada no mandato.  É o mesmo motivo da
+    // abordagem B: um teto absoluto em R$/MWh fica obsoleto em semanas, então
+    // o mandato limita o desconto CONTRA a curva -- e a curva é consulta viva.
+    const curveId = curveKeyFor(purchase.attributes.submercado, purchase.attributes.periodo_suprimento);
+    const curve = await MarketCurve.findById(curveId).lean();
+    if (!curve) return remember(reject("unknown_curve", { submercado: purchase.attributes.submercado }));
+
+    // O merchant é relido aqui, e não recebido da rota, porque o que interessa
+    // dele agora é o rating -- e rating é atestação, não autenticação.
+    const merchant = await Merchant.findById(merchantId).lean();
+
+    purchase.attributes = {
+      ...purchase.attributes,
+      ...derivedAttributes({
+        offer: purchase.attributes,
+        contract,
+        curve,
+        merchant,
+        quantity: purchase.quantity ?? 1,
+      }),
+    };
+  }
+
+  // 3.6) A cadeia de delegação.
+  //
+  //      Revogar o mandato-pai mata os derivados na mesma leitura.  Sem isto, a
+  //      diretoria retiraria a moldura e os mandatos operacionais seguiriam
+  //      comprando, cada um "válido" por conta própria.
+  //
+  //      Resolvido AQUI e não dentro do motor, para `evaluate` continuar sendo
+  //      função pura de um mandato só.
+  const ancestors = await loadAncestors(mandate, (id) => Mandate.findById(id).lean());
+  const chain = effectiveStatus(mandate, ancestors, now);
+
   // 4) Aprovação humana desta compra exata, se existir.  A busca é estreita de
   //    propósito: aprovar um tênis de R$98 não pode virar cheque em branco.
   const approval = await Approval.findOne({
@@ -86,12 +148,21 @@ export async function introspect(body, { merchantId }) {
     expiresAt: { $gt: now },
   }).lean();
 
-  const decision = evaluate(mandate, purchase, {
-    ticket,
-    authenticatedMerchantId: merchantId,
-    approval,
-    now,
-  });
+  // Um pai morto decide ANTES do motor, e a recusa nomeia qual pai quebrou:
+  // "por que este mandato parou de valer?" merece resposta que aponte o dedo.
+  const decision = chain.brokenBy
+    ? {
+        valid: false,
+        action: "reject",
+        reason: { code: "parent_revoked", params: { parent: chain.brokenBy, status: chain.status } },
+        trace: [],
+      }
+    : evaluate(mandate, purchase, {
+        ticket,
+        authenticatedMerchantId: merchantId,
+        approval,
+        now,
+      });
 
   const base = {
     mandateId,

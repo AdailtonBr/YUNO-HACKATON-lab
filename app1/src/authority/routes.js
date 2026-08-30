@@ -325,7 +325,15 @@ export function buildRouter() {
 
     // O trilho INTEIRO daquele mandato, em ordem: é dele que o veredito sai.
     const trail = await AuditLog.find({ mandateId: disputed.mandateId }).sort({ ts: 1, seq: 1 }).lean();
-    const resolution = resolveDispute(disputed, trail, mandate);
+
+    // E o do mandato-pai, quando existe: sem ele não há como verificar se quem
+    // emitiu este mandato tinha poderes para emiti-lo.
+    const parent = mandate.parentMandateId ? await Mandate.findById(mandate.parentMandateId).lean() : null;
+    const parentTrail = parent
+      ? await AuditLog.find({ mandateId: parent._id }).sort({ ts: 1, seq: 1 }).lean()
+      : [];
+
+    const resolution = resolveDispute(disputed, trail, mandate, { parent, parentTrail });
 
     const dispute = await Dispute.create({
       _id: opaqueId("dsp"),

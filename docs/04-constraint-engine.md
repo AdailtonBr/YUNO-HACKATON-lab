@@ -111,7 +111,15 @@ function evaluate(mandate, purchase, ctx) {
     if (!op(real, c.value)) {                                  // FALHA -> on_fail
       // fora do mandato: recusa OU escala, nunca aprova em silêncio
       const reason = `falhou: ${c.attr} ${c.op} ${JSON.stringify(c.value)}`;
-      return c.on_fail === "escalate" ? escalate(reason) : deny(reason);   // default: deny
+      if (c.on_fail !== "escalate") return deny(reason);        // default: deny
+
+      // Escalar é uma PERGUNTA — e uma pergunta pode já ter sido respondida.
+      // É AQUI que "um mecanismo, duas origens" deixa de ser promessa: sem esta
+      // consulta, o humano aprova e a tentativa seguinte escala de novo, para
+      // sempre.  O sim é o mesmo do modo `aprovacao`: estreito, de uso único,
+      // e libera ESTA compra sem alargar o mandato.
+      if (!approvalMatches(approval, mandate, purchase, ctx)) return escalate(reason);
+      continue;                                                // segue avaliando as demais
     }
   }
 
