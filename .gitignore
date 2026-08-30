@@ -9,3 +9,8 @@ ui/dist/
 docs/resumo-projeto.html
 docs/resumo-projeto.pdf
 .env.backup-b2c
+
+# Material de preparacao da equipe: fica no disco, fora do repo publico.
+DEFESA.md
+IDENTIDADE-E-DISPUTA.md
+PLANO-DEMO-ENERGIA.md

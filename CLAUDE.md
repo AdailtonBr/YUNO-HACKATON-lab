@@ -73,8 +73,9 @@ da equipe (`DEFESA.md`, `IDENTIDADE-E-DISPUTA.md`) ficam em PT-BR de propósito.
 | `docs/DATA-MODEL.md` | coleções do Mongo e contratos de endpoint |
 | `docs/ENERGY-VOCABULARY.md` | o vocabulário congelado, quem atesta cada atributo, os números da demo |
 | `docs/SCALING.md` | caminho de escala do id opaco — não está no MVP; existe para responder "e em escala?" |
-| `DEFESA.md` · `IDENTIDADE-E-DISPUTA.md` | preparação da equipe, em PT-BR |
-| `PLANO-DEMO-ENERGIA.md` | histórico: como as quatro frentes construíram em paralelo |
+
+Fora do repo, no disco de quem trabalha nele: `DEFESA.md` e `IDENTIDADE-E-DISPUTA.md` (preparação da
+equipe, em PT-BR) e `PLANO-DEMO-ENERGIA.md` (histórico das quatro frentes). Estão no `.gitignore`.
 
 ## Estilo de trabalho
 

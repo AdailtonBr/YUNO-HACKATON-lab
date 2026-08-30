@@ -310,9 +310,6 @@ revocation and the trail all sit upstream of it.
 | [`docs/ENERGY-VOCABULARY.md`](docs/ENERGY-VOCABULARY.md) | the frozen attribute vocabulary and who attests each one |
 | [`docs/SCALING.md`](docs/SCALING.md) | how the opaque-id model scales — not in the MVP, and why that is fine |
 
-Team preparation material, in Portuguese: [`DEFESA.md`](DEFESA.md) (the whole system in one read) and
-[`IDENTIDADE-E-DISPUTA.md`](IDENTIDADE-E-DISPUTA.md) (identity and dispute in depth).
-
 ## Deliverables
 
 1. Slides
