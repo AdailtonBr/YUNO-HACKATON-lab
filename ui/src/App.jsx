@@ -63,8 +63,20 @@ export default function App() {
       setCurves(Array.isArray(curveResult) ? curveResult : curveResult?.curves ?? []);
       setCycle(cycleResult);
       setErr(null);
-    } catch {
-      setErr(t(locale, "errors.authorityDown"));
+    } catch (e) {
+      /*
+       * Mostrar o que o SERVIDOR disse, quando ele disse algo.
+       *
+       * Este catch engolia a resposta inteira e imprimia uma porta fixa.  Num
+       * deploy nao existe :3001 nenhuma, entao a tela trocava um diagnostico
+       * exato -- `database_unavailable`, com o detalhe do que faltou -- por um
+       * palpite errado, e mandava quem lesse procurar no lugar errado.
+       *
+       * O erro de rede continua sem detalhe: ai a frase sozinha e a verdade.
+       */
+      const detail = e?.data?.detail ?? (e?.status ? e.message : null);
+      const lead = t(locale, "errors.authorityDown");
+      setErr(detail ? `${lead} ${detail}` : lead);
     }
   }, [locale]);
 

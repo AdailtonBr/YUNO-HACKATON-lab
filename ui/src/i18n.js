@@ -291,7 +291,7 @@ const en = {
     },
   },
 
-  errors: { authorityDown: "Cannot reach the Authority on :3001 — is it running?" },
+  errors: { authorityDown: "The Authority did not answer." },
 };
 
 const pt = {
@@ -579,7 +579,7 @@ const pt = {
     },
   },
 
-  errors: { authorityDown: "Não consigo falar com a Autoridade em :3001 — ela está rodando?" },
+  errors: { authorityDown: "A Autoridade não respondeu." },
 };
 
 const dict = { en, pt };
