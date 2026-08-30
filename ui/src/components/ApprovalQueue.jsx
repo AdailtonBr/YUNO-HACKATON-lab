@@ -196,15 +196,53 @@ function ApprovalRow({ locale, a, busy, onApprove, onRefuse }) {
 export default function ApprovalQueue({ locale, approvals, reload }) {
   const T = (k) => t(locale, k);
   const [busy, setBusy] = useState(null);
+  const [note, setNote] = useState(null);
 
-  const act = (id, fn) => async () => {
+  /*
+   * Aprovar NAO compra -- e a tela precisa fazer as duas coisas: encurtar o
+   * caminho e dizer o que esta acontecendo.
+   *
+   * O sim do humano so registra uma aprovacao casada com aquela compra.  Quem
+   * assina e o AGENTE, na tentativa seguinte, e a Autoridade verifica tudo de
+   * novo -- agora encontrando a aprovacao.  Sao dois atos de proposito: se
+   * aprovar comprasse, o humano estaria decidindo no lugar do motor.
+   *
+   * Rodando local isso passa despercebido, porque o vigia refaz o ciclo em
+   * cinco segundos.  Num deploy sem processo vivo nao ha vigia: o cron bate uma
+   * vez por dia, entao a tela ficava parada e a leitura obvia era "aprovei e
+   * nao aconteceu nada".  Entao pedimos o ciclo aqui mesmo.
+   *
+   * A linha de estado nao e enfeite: ela mostra a costura em vez de esconder,
+   * e e o que impede o atalho de virar a impressao de que este botao paga.
+   */
+  const act = (id, fn, retryCycle = false) => async () => {
     setBusy(id);
+    setNote(null);
     try {
       await fn(id, locale);
+
+      if (retryCycle) {
+        setNote({ tone: "wait", text: T("approvals.retrying") });
+        try {
+          await api.runCycle(locale);
+          setNote({ tone: "allow", text: T("approvals.retried") });
+        } catch {
+          // A aprovacao JA esta gravada e continua valendo ate expirar.  Um
+          // ciclo que nao rodou nao pode desfaze-la nem parecer que a desfez.
+          setNote({ tone: "deny", text: T("approvals.retryFailed") });
+        }
+      }
+
       await reload();
     } finally {
       setBusy(null);
     }
+  };
+
+  const NOTE_TONE = {
+    allow: "border-allow-line bg-allow-bg text-allow-ink",
+    wait: "border-wait-line bg-wait-bg text-wait-ink",
+    deny: "border-deny-line bg-deny-bg text-deny-ink",
   };
 
   const waiting = approvals.reduce((sum, a) => sum + a.price, 0);
@@ -223,6 +261,12 @@ export default function ApprovalQueue({ locale, approvals, reload }) {
         }
       />
 
+      {note && (
+        <p className={`mb-4 rounded border px-4 py-3 font-mono text-[12.5px] leading-relaxed ${NOTE_TONE[note.tone]}`}>
+          {note.text}
+        </p>
+      )}
+
       {approvals.length === 0 ? (
         <Panel>
           <Empty>{T("approvals.empty")}</Empty>
@@ -235,7 +279,7 @@ export default function ApprovalQueue({ locale, approvals, reload }) {
               locale={locale}
               a={a}
               busy={busy === a.approvalId}
-              onApprove={act(a.approvalId, api.approve)}
+              onApprove={act(a.approvalId, api.approve, true)}
               onRefuse={act(a.approvalId, api.reject)}
             />
           ))}

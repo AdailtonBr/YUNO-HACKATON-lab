@@ -142,6 +142,9 @@ const en = {
     expiresIn: "expires in",
     expired: "expired",
     exposureWaiting: "waiting on you",
+    retrying: "Approval recorded. The agent is attempting the contract now — the Authority verifies it again before anything is signed.",
+    retried: "The agent has run. The outcome is on the Daily cycle screen and in the audit trail.",
+    retryFailed: "Approval recorded, but the cycle did not run. Use “Run a cycle now” on the Daily cycle screen — your approval stays valid until it expires.",
     why: "Why it came to you",
     originMode: "the mandate requires your approval for every purchase",
     originFail: "a rule failed and the mandate says to ask you",
@@ -153,7 +156,7 @@ const en = {
     approvalId: "approval",
     approve: "Approve",
     refuse: "Refuse",
-    footer: "approving releases the payment immediately · refusing records APPROVAL_REJECTED in the audit trail · no answer means it expires and nothing is paid",
+    footer: "approving records your yes and the agent retries · the Authority verifies again before anything is signed · refusing records APPROVAL_REJECTED in the audit trail · no answer means it expires and nothing is paid",
   },
 
   mandates: {
@@ -430,6 +433,9 @@ const pt = {
     expiresIn: "expira em",
     expired: "expirou",
     exposureWaiting: "esperando você",
+    retrying: "Aprovação registrada. O agente está tentando o contrato agora — a Autoridade verifica de novo antes de qualquer assinatura.",
+    retried: "O agente rodou. O resultado está na tela do Ciclo diário e na trilha.",
+    retryFailed: "Aprovação registrada, mas o ciclo não rodou. Use “Rodar um ciclo agora” na tela do Ciclo diário — sua aprovação continua válida até expirar.",
     why: "Por que veio até você",
     originMode: "o mandato exige sua aprovação a cada compra",
     originFail: "uma regra falhou e o mandato manda perguntar",
@@ -441,7 +447,7 @@ const pt = {
     approvalId: "aprovação",
     approve: "Aprovar",
     refuse: "Recusar",
-    footer: "aprovar libera o pagamento imediatamente · recusar registra APPROVAL_REJECTED na trilha · sem resposta, expira e nada é pago",
+    footer: "aprovar registra o seu sim e o agente tenta de novo · a Autoridade verifica outra vez antes de qualquer assinatura · recusar registra APPROVAL_REJECTED na trilha · sem resposta, expira e nada é pago",
   },
 
   mandates: {
