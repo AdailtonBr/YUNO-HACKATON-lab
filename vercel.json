@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+
+  "installCommand": "MONGOMS_DISABLE_POSTINSTALL=1 npm install",
+  "buildCommand": "npm run build --workspace ui",
+  "outputDirectory": "ui/dist",
+
+  "functions": {
+    "api/index.js": { "maxDuration": 60 },
+    "api/store.js": { "maxDuration": 30 }
+  },
+
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index" },
+    { "source": "/volt/:path*", "destination": "/api/store" },
+    { "source": "/cerrado/:path*", "destination": "/api/store" },
+    { "source": "/helios/:path*", "destination": "/api/store" },
+    { "source": "/:path*", "destination": "/index.html" }
+  ],
+
+  "crons": [{ "path": "/api/cron/cycle", "schedule": "0 11 * * *" }]
+}

@@ -63,8 +63,17 @@ const CSS = `
 `;
 
 const SCRIPT = String.raw`
+/*
+ * A base sai do proprio endereco da pagina.
+ *
+ * Local, o painel e servido em "/" e a base e vazia.  Num deploy onde as tres
+ * comercializadoras dividem um dominio, ele e servido em "/volt" e as chamadas
+ * precisam do prefixo.  Derivar em vez de configurar mantem o painel ignorante
+ * de onde foi montado -- e nao ha o que esquecer de passar.
+ */
+var BASE = location.pathname.replace(/\/+$/, '');
 async function patch(pid, body, el) {
-  const r = await fetch('/catalog/' + encodeURIComponent(pid), {
+  const r = await fetch(BASE + '/catalog/' + encodeURIComponent(pid), {
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
@@ -117,7 +126,7 @@ function wireCents(attr, field) {
 }
 
 async function load() {
-  var data = await (await fetch('/products')).json();
+  var data = await (await fetch(BASE + '/products')).json();
   document.getElementById('rows').innerHTML = data.items.map(rowHtml).join('');
 
   wireCents('price', 'price');
@@ -144,7 +153,7 @@ async function load() {
 }
 
 async function loadForge() {
-  var s = await (await fetch('/panel/forge')).json();
+  var s = await (await fetch(BASE + '/panel/forge')).json();
   if (!s.capable) return;
   var box = document.getElementById('forge');
   box.hidden = false;
@@ -156,7 +165,7 @@ async function loadForge() {
   paint(s.on);
   btn.addEventListener('click', async function () {
     var next = btn.className === 'on';
-    var r = await fetch('/panel/forge', {
+    var r = await fetch(BASE + '/panel/forge', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ on: next }),

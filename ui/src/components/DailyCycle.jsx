@@ -14,9 +14,10 @@
  * primeiro — e é a resposta visual para "e se o agente mentir?".
  */
 
-import { money } from "../api.js";
+import { useState } from "react";
+import { api, money } from "../api.js";
 import { DECISION_LABEL, t } from "../i18n.js";
-import { Chip, Empty, Label, Panel, ScreenHead } from "./ui.jsx";
+import { Button, Chip, Empty, Label, Panel, ScreenHead } from "./ui.jsx";
 
 const toneFor = (decision) =>
   decision === "valido" ? "allow" : decision === "escalado" ? "wait" : "deny";
@@ -161,7 +162,48 @@ function OfferCard({ offer, attempt, locale, T }) {
   );
 }
 
-export default function DailyCycle({ locale, cycle, trail = [] }) {
+/**
+ * Rodar o ciclo AGORA.
+ *
+ * O vigia bate a cada poucos segundos no `npm run dev`, mas num deploy sem
+ * processo vivo quem bate o relógio é o cron -- uma vez por dia.  Sem este
+ * botão, a tela nasceria vazia e ficaria vazia até as 08:00, o que é o mesmo
+ * que não ter demo.
+ *
+ * Ele não decide nada: chama a MESMA rota do agente que o cron chama, e a
+ * Autoridade continua sendo quem responde sim ou não a cada oferta.
+ */
+function RunNow({ locale, T, reload }) {
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  if (!reload) return null;
+
+  return (
+    <div className="flex flex-col items-end gap-1.5">
+      <Button
+        onClick={async () => {
+          setBusy(true);
+          setFailed(false);
+          try {
+            await api.runCycle(locale);
+            await reload();
+          } catch {
+            setFailed(true);
+          } finally {
+            setBusy(false);
+          }
+        }}
+        disabled={busy}
+      >
+        {busy ? T("energy.cycle.running") : T("energy.cycle.runNow")}
+      </Button>
+      {failed && <span className="font-mono text-[11px] text-deny-ink">{T("energy.cycle.runFailed")}</span>}
+    </div>
+  );
+}
+
+export default function DailyCycle({ locale, cycle, trail = [], reload }) {
   const T = (key) => t(locale, key);
   const snapshot = cycle?.cycle ?? cycle;
   const run = snapshot?.mandates?.[0] ?? null;
@@ -186,7 +228,11 @@ export default function DailyCycle({ locale, cycle, trail = [] }) {
 
     return (
       <>
-        <ScreenHead title={T("energy.cycle.title")} note={T("energy.cycle.note")} />
+        <ScreenHead
+          title={T("energy.cycle.title")}
+          note={T("energy.cycle.note")}
+          right={<RunNow locale={locale} T={T} reload={reload} />}
+        />
         <Panel>
           {rows.length === 0 ? (
             <Empty>{T("energy.cycle.waiting")}</Empty>
@@ -233,11 +279,14 @@ export default function DailyCycle({ locale, cycle, trail = [] }) {
         title={T("energy.cycle.title")}
         note={T("energy.cycle.note")}
         right={
-          snapshot.startedAt && (
-            <span className="rounded-full border border-line bg-surface px-3 py-1.5 font-mono text-[11px] text-ink-dim">
-              {new Date(snapshot.startedAt).toLocaleTimeString(locale === "pt" ? "pt-BR" : "en-US")}
-            </span>
-          )
+          <div className="flex items-center gap-3">
+            {snapshot.startedAt && (
+              <span className="rounded-full border border-line bg-surface px-3 py-1.5 font-mono text-[11px] text-ink-dim">
+                {new Date(snapshot.startedAt).toLocaleTimeString(locale === "pt" ? "pt-BR" : "en-US")}
+              </span>
+            )}
+            <RunNow locale={locale} T={T} reload={reload} />
+          </div>
         }
       />
 

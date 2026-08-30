@@ -149,7 +149,7 @@ export default function App() {
 
         {tab === "wallet" && <Wallet locale={locale} methods={methods} reload={reload} />}
         {tab === "issue" && <EnergyPortal.Issuer locale={locale} methods={methods} reload={reload} />}
-        {tab === "cycle" && <DailyCycle locale={locale} cycle={cycle} trail={trail} />}
+        {tab === "cycle" && <DailyCycle locale={locale} cycle={cycle} trail={trail} reload={reload} />}
         {tab === "approvals" && <ApprovalQueue locale={locale} approvals={approvals} reload={reload} />}
         {tab === "mandates" && (
           <Mandates

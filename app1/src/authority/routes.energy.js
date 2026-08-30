@@ -12,8 +12,8 @@
  */
 
 import express from "express";
-import { Mandate, SupplyContract, MarketCurve, AuditLog, nextAuditSeq } from "./models.js";
-import { requireHuman } from "./routes.js";
+import { Mandate, SupplyContract, MarketCurve, AuditLog, AgentCycle, nextAuditSeq } from "./models.js";
+import { requireHuman, requireAgent } from "./routes.js";
 import { opaqueId } from "./ticket.js";
 import { mandateStatus } from "./engine.js";
 import { curveKeyFor, diasParaDenuncia } from "./energy.js";
@@ -23,6 +23,35 @@ export function buildEnergyRouter() {
   const r = express.Router();
   const locale = (req) => (req.get("accept-language")?.startsWith("pt") ? "pt-BR" : "en");
   const audit = (entry) => AuditLog.create({ _id: opaqueId("aud"), seq: nextAuditSeq(), ...entry });
+
+  /* --------------------------- o ciclo do agente --------------------------- */
+  /*
+   * O agente DEPOSITA o rascunho aqui; ele nao escreve no banco.  E o mesmo
+   * padrao das propostas de mandato: ele autentica como agente, e quem grava e
+   * a Autoridade.  A fronteira continua sendo topologia -- ha um teste que le o
+   * codigo do agente para garantir que ele nao alcanca uma colecao.
+   */
+  r.post("/cycles", requireAgent, async (req, res) => {
+    const cycle = req.body?.cycle;
+    if (!cycle) return res.status(400).json({ error: "missing_cycle" });
+    await AgentCycle.updateOne(
+      { _id: req.agentId },
+      { $set: { cycle, at: new Date() } },
+      { upsert: true }
+    );
+    res.status(201).json({ ok: true });
+  });
+
+  /**
+   * O ultimo ciclo, para a tela.
+   *
+   * `cycle: null` explicito quando nao houve nenhum -- a tela mostra "esperando
+   * o primeiro ciclo" em vez de inventar uma tabela vazia que parece erro.
+   */
+  r.get("/cycles/latest", async (_req, res) => {
+    const doc = await AgentCycle.findOne({}).sort({ at: -1 }).lean();
+    res.json({ cycle: doc?.cycle ?? null, at: doc?.at ?? null });
+  });
 
   /* ------------------------------ a curva ------------------------------ */
   /*

@@ -42,7 +42,10 @@ export const api = {
   updateCurve: (submercado, precoBrlMwh, locale) =>
     req("PATCH", `/api/curves/${encodeURIComponent(submercado)}`, { body: { precoBrlMwh }, locale }),
   contracts: (locale) => req("GET", "/api/contracts", { locale }),
-  dailyCycle: (locale) => req("GET", "/api/agent/cycles/latest", { locale }),
+  // O ciclo vem da Autoridade, nao do processo do agente: em serverless cada
+  // requisicao e um processo novo, e memoria nao sobrevive entre invocacoes.
+  dailyCycle: (locale) => req("GET", "/api/cycles/latest", { locale }),
+  runCycle: (locale) => req("POST", "/api/agent/cycles/run", { locale }),
   // Carteira: o cru entra, so rotulo e id voltam.
   methods: (locale) => req("GET", "/api/wallet/methods", { locale }),
   addMethod: (rail, instrument, locale) =>

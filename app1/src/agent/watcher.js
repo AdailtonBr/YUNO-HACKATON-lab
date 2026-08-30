@@ -142,6 +142,30 @@ export function planCycle({
 
 /** Lê a curva e o contrato pela porta pública da Autoridade.  Só HTTP. */
 /**
+ * Entrega o rascunho do ciclo a Autoridade.
+ *
+ * Ele nao escreve no banco -- deposita, como faz com as propostas de mandato, e
+ * quem grava e a Autoridade.  Falhar aqui nao e falha do ciclo: o que decide ja
+ * foi decidido e ja esta no trilho; isto e so a tabela de comparacao da tela.
+ */
+async function depositCycle(base, cycle, deps) {
+  if (!deps.agentId || !deps.agentSecret) return;
+  try {
+    await fetch(`${base}/cycles`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-agent-id": deps.agentId,
+        "x-agent-secret": deps.agentSecret,
+      },
+      body: JSON.stringify({ cycle }),
+    });
+  } catch {
+    /* o rascunho e descartavel; o registro nao depende dele */
+  }
+}
+
+/**
  * Os mandatos, pela PORTA PUBLICA -- nao pelo banco.
  *
  * Este modulo ja leu o Mongo direto, e o atalho custava caro: `Mandate.find`
@@ -212,7 +236,7 @@ async function readWorld(base, humanId) {
  *
  * @returns o log do ciclo — dado estruturado, para a UI renderizar
  */
-export async function runCycle(deps) {
+async function buildCycle(deps) {
   const base = deps.authorityUrl ?? authorityUrl();
   const now = deps.now ?? new Date();
   const cycle = startCycle({ cycleId: `cyc_${Date.now().toString(36)}`, now });
@@ -357,6 +381,20 @@ export async function runCycle(deps) {
 }
 
 /**
+ * Um ciclo, e a entrega do rascunho.
+ *
+ * O deposito fica AQUI, e nao em cada saida de `buildCycle`, porque ha tres --
+ * sem mandato, sem oferta, e o caminho completo -- e as tres produzem uma
+ * tabela que a tela quer mostrar.  "Nao havia mandato ativo" tambem e uma
+ * resposta, e some se so o caminho feliz for gravado.
+ */
+export async function runCycle(deps) {
+  const cycle = await buildCycle(deps);
+  await depositCycle(deps.authorityUrl ?? authorityUrl(), cycle, deps);
+  return cycle;
+}
+
+/**
  * Uma tentativa AVULSA, fora da ordem do ciclo.
  *
  * É o teste 6: o gestor olha a Helios, acha o R$239 atraente e manda comprar
@@ -387,18 +425,16 @@ export async function attemptOffer({ mandate, offer, contract, curve, deps, quan
  * O intervalo é de DEMO.  Em produção o ciclo é diário, na janela de mesa do
  * §4.6 — e o número aqui não muda nada além de com que frequência se pergunta.
  */
-/**
- * O último ciclo, para quem quiser olhar.
+/*
+ * O ultimo ciclo NAO mora mais aqui.
  *
- * Vive em memória e no processo do agente, e isso é a coisa certa: é o
- * RASCUNHO do agente, não o registro da decisão.  O registro é o `audit_log`,
- * que a Autoridade escreve e que sobrevive ao restart.  Perder isto num
- * reinício não perde nada que alguém possa precisar depois — some a tabela de
- * comparação, e o veredito continua no trilho.
+ * Morava, e a razao era boa: e o rascunho do agente, nao o registro da decisao.
+ * Mas memoria de processo nao sobrevive num ambiente serverless, onde cada
+ * requisicao e um processo novo -- a tela nasceria vazia sempre.  Agora o
+ * agente DEPOSITA o rascunho na Autoridade (ver `depositCycle`), que e quem
+ * escreve estado neste sistema.  O registro da decisao continua sendo o
+ * `audit_log`, e continua sendo outra coisa.
  */
-let lastCycle = null;
-export const latestCycle = () => lastCycle;
-
 export function startWatcher(deps) {
   const interval = Number(process.env.WATCHER_INTERVAL_MS ?? 5000);
   const maxMandates = Number(process.env.WATCHER_MAX_PURCHASES_PER_TICK ?? 5);
@@ -410,7 +446,6 @@ export function startWatcher(deps) {
     running = true;
     try {
       last = await runCycle({ ...deps, maxMandates });
-      lastCycle = last;
       for (const line of formatCycle(last)) console.log(`[cycle] ${line}`);
     } catch (e) {
       console.warn("[cycle] tick failed:", e.message);

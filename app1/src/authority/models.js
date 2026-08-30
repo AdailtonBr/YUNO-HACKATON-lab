@@ -292,6 +292,24 @@ const idempotencySchema = new Schema(
   opts
 );
 
+/**
+ * O ultimo ciclo do agente.
+ *
+ * E o RASCUNHO dele -- a tabela de comparacao, com as ofertas que nem chegaram
+ * a ser tentadas.  Nao e o registro da decisao: esse e o audit_log, e continua
+ * sendo.  Mora aqui por um motivo operacional, nao conceitual: num ambiente
+ * serverless cada requisicao e um processo novo, e memoria do processo nao
+ * sobrevive de uma invocacao para a outra.
+ *
+ * Um documento por agente, sobrescrito a cada ciclo.  Histórico de rascunho
+ * nao interessa a ninguem -- o que interessa ja esta no trilho.
+ */
+const agentCycleSchema = new Schema(
+  { _id: String, cycle: { type: Schema.Types.Mixed, required: true }, at: { type: Date, default: Date.now } },
+  opts
+);
+
+export const AgentCycle = model("AgentCycle", agentCycleSchema, "agent_cycles");
 export const Mandate = model("Mandate", mandateSchema, "mandates");
 export const Merchant = model("Merchant", merchantSchema, "merchants");
 export const Agent = model("Agent", agentSchema, "agents");

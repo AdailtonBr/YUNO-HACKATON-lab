@@ -80,7 +80,7 @@ It is kept, dormant, because it costs nothing and it is the proof that the bound
 
 ```bash
 npm install
-npm test        # 228 tests, including 24 adversarial ones. In-memory Mongo — no Atlas needed
+npm test        # 238 tests, including 24 adversarial ones. In-memory Mongo — no Atlas needed
 npm run dev     # Authority :3001 · counterparties :4001-4003 · Portal :5173
 ```
 
@@ -102,6 +102,55 @@ Copy `.env.example` to `.env`. The two settings that matter:
 | `WATCHER=off` | Stops the daily cycle, for working on the engine without anything contracting on its own |
 
 `OPENAI_API_KEY` is **not** needed. The energy demo issues mandates through a form.
+
+### Deploying to Vercel
+
+```bash
+npm i -g vercel
+vercel link
+vercel env add MONGODB_URI production      # required — see below
+vercel --prod
+```
+
+`vercel.json` already carries the whole configuration. What it does, and why each piece is there:
+
+| Piece | Why |
+|---|---|
+| `buildCommand` → `ui/dist` | the Portal is a static bundle; the servers are functions |
+| Rewrites `/api/*`, `/volt/*`, `/cerrado/*`, `/helios/*` | the four processes of `npm run dev` become **two functions behind one domain**, told apart by the path prefix. The Portal keeps calling `/api/mandates` — the client is identical in dev and in production |
+| `crons` → `/api/cron/cycle` at 11:00 UTC | **08:00 in São Paulo**, the trading-desk window the daily cycle is written around |
+| `maxDuration: 60` on the Authority | a cycle is an RFQ to three counterparties plus introspection round trips |
+
+`api/index.js` and `api/store.js` are deployment glue and nothing else — they mount `buildApp()` and
+`buildStore()`, the *same* apps the dev server runs, under their prefixes. No role moves, no rule changes.
+
+**Environment variables to set in the project:**
+
+| Variable | |
+|---|---|
+| `MONGODB_URI` | **required.** A serverless function has no process to hold an in-memory database between requests, so it fails loudly on the first call rather than serving a system that forgets. Any free Atlas cluster does; allow access from `0.0.0.0/0`, since Vercel's egress IPs are not fixed |
+| `CRON_SECRET` | what stops anyone on the internet from making the agent go shopping. Vercel sends it as `Authorization: Bearer`. Without it the route is open, and the log says so |
+| `AGENT_SECRET` | the agent's signing key. Change it from the seeded default before sharing the link |
+| `SEED_MANDATES` | leave unset. The demo opens on an empty Portal because the first scene is a human issuing the mandate |
+
+Nothing else needs setting: the counterparty and Authority URLs are derived from `VERCEL_URL` at runtime.
+Set `PUBLIC_URL` only to override that — a custom domain, or counterparties hosted elsewhere.
+
+**Turn off Deployment Protection**, or the demo cannot talk to itself: the agent calls the counterparties
+and they call the Authority over the public domain, and a protected deployment answers those internal
+calls with a login wall.
+
+#### What is weaker on serverless, stated plainly
+
+The **operator panel's** edits — price, commission, term, the impostor switch — live in the function
+instance's memory, so a change may not reach the next invocation. The levers the demo actually turns on
+stage do not: the **market curve**, revocation, approvals, `supersede` and the whole audit trail are
+Authority state in Mongo, and the daily cycle is now deposited there too rather than held in the agent's
+process. For a judging session where someone will drive a counterparty's price by hand, run it locally.
+
+The mock vault is in-memory by design — it stands in for a PSP, which is a separate system. A restart
+loses the raw instruments; `charge` degrades instead of breaking, which is what a real separate PSP would
+look like from here.
 
 ### The screens
 
@@ -252,7 +301,7 @@ Stack: Node + Express + Mongoose + MongoDB · React + Vite + Tailwind · `node -
 ### Tests
 
 ```bash
-npm test              # 228, serial and deterministic (~16s)
+npm test              # 238, serial and deterministic (~18s)
 npm run test:fast     # parallel, ~4s, but flaky by ~25% — see the note in audit-scope.test.js
 ```
 
@@ -266,6 +315,7 @@ npm run test:fast     # parallel, ~4s, but flaky by ~25% — see the note in aud
 | `energy.test.js` · `introspect.test.js` · `merchants-energy.test.js` | integration through real HTTP |
 | `dispute.test.js` · `dispute-energy.test.js` | the seven links |
 | `cycle.test.js` · `audit-scope.test.js` · `history-window.test.js` | the cycle, tenant isolation, the LLM window |
+| `serverless.test.js` | the **deploy composition** — both functions mounted behind one domain, exactly as the rewrites mount them |
 
 The adversarial suite models the strongest attacker we could think of, and it is not a stranger: it is a
 **registered counterparty** with a valid API key that knows the `mandateId` and `agentId` from a purchase

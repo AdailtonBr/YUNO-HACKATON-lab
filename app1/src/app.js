@@ -12,7 +12,11 @@ export function buildApp() {
   app.use((req, res, next) => {
     res.set("access-control-allow-origin", "*");
     res.set("access-control-allow-headers", "content-type, x-human-id, x-api-key, x-agent-id, x-agent-secret, accept-language");
-    res.set("access-control-allow-methods", "GET, POST, OPTIONS");
+    // A lista tem que cobrir TUDO o que a UI usa: a carteira remove conta com
+    // DELETE e o painel da curva ajusta com PATCH.  Passou despercebido porque
+    // o proxy do Vite faz tudo virar same-origin no dev -- o preflight so
+    // aparece quando alguem fala com a Autoridade de outra origem.
+    res.set("access-control-allow-methods", "GET, POST, PATCH, DELETE, OPTIONS");
     if (req.method === "OPTIONS") return res.sendStatus(204);
     next();
   });
