@@ -142,20 +142,32 @@ export function planCycle({
 }
 
 /** Lê a curva e o contrato pela porta pública da Autoridade.  Só HTTP. */
-async function readWorld(base) {
+async function readWorld(base, humanId) {
+  // O contrato e dado de NEGOCIO do titular -- revela volume, sazonalidade e,
+  // por tabela, turnos e paradas de fabrica.  Por isso /contracts exige sessao,
+  // e por isso o agente se identifica: ele serve UMA empresa.
+  const headers = humanId ? { "x-human-id": humanId } : undefined;
   const get = async (path) => {
     try {
-      const r = await fetch(`${base}${path}`);
+      const r = await fetch(`${base}${path}`, { headers });
       return r.ok ? await r.json() : null;
     } catch {
       return null;
     }
   };
   const [curves, contracts] = await Promise.all([get("/curves"), get("/contracts")]);
-  return {
-    curve: curves?.curves?.[0] ?? curves?.curve ?? null,
-    contract: contracts?.contracts?.[0] ?? contracts?.contract ?? null,
-  };
+  const list = (x) => (Array.isArray(x) ? x : []);
+
+  // O contrato VIGENTE, e a curva do submercado DELE.  Comparar preco entre
+  // submercados e erro grosseiro: sao mercados diferentes, com precos que nao
+  // se falam.  Pegar "a primeira curva" funcionaria hoje, com uma so, e
+  // passaria a mentir em silencio no dia em que houvesse duas.
+  const contract = list(contracts).find((c) => c.ativo !== false) ?? null;
+  const curve = contract
+    ? list(curves).find((c) => c.submercado === contract.submercado) ?? null
+    : list(curves)[0] ?? null;
+
+  return { curve, contract };
 }
 
 /**
@@ -177,7 +189,7 @@ export async function runCycle(deps) {
   const now = deps.now ?? new Date();
   const cycle = startCycle({ cycleId: `cyc_${Date.now().toString(36)}`, now });
 
-  const { curve, contract } = deps.world ?? (await readWorld(base));
+  const { curve, contract } = deps.world ?? (await readWorld(base, deps.humanId));
 
   // Sem curva ou sem contrato, o ciclo NÃO tenta nada.
   //

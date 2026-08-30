@@ -80,6 +80,9 @@ if (process.env.WATCHER !== "off") {
     ],
     agentId: process.env.AGENT_ID ?? "agent_aurora",
     agentSecret: process.env.AGENT_SECRET ?? "demo-agent-secret-aurora",
+    // De quem e a empresa que este agente serve.  Sem isto ele nao consegue ler
+    // o proprio contrato vigente, e um ciclo sem contrato nao tenta nada.
+    humanId: process.env.HUMAN_ID ?? "user_aurora",
   });
 }
 

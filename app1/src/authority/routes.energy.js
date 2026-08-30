@@ -48,10 +48,27 @@ export function buildEnergyRouter() {
    * mesma coisa; o que mudou foi o mundo contra o qual ele é lido.
    */
   r.patch("/curves/:submercado", requireHuman, async (req, res) => {
-    const { periodo, precoBrlMwh } = req.body ?? {};
-    if (!periodo || !Number.isInteger(precoBrlMwh) || precoBrlMwh <= 0) {
+    let { periodo, precoBrlMwh } = req.body ?? {};
+    if (!Number.isInteger(precoBrlMwh) || precoBrlMwh <= 0) {
       return res.status(400).json({ error: "invalid_curve" });
     }
+
+    // O periodo e OPCIONAL quando nao ha ambiguidade.  Quem mexe na curva no
+    // meio de uma demo esta dizendo "o mercado do SE/CO mudou", e obriga-lo a
+    // digitar o ano e transformar uma alavanca numa formalidade.  Com mais de
+    // uma curva no submercado a pergunta volta a ter duas respostas, e ai sim
+    // ela precisa ser feita -- com a lista do que existe, para nao adivinhar.
+    if (!periodo) {
+      const existing = await MarketCurve.find({ submercado: req.params.submercado }).lean();
+      if (existing.length === 1) periodo = existing[0].periodo;
+      else {
+        return res.status(400).json({
+          error: existing.length ? "periodo_ambiguo" : "periodo_required",
+          periodos: existing.map((c) => c.periodo),
+        });
+      }
+    }
+
     const _id = `${req.params.submercado}:${periodo}`;
     const before = await MarketCurve.findById(_id).lean();
 
@@ -89,6 +106,11 @@ export function buildEnergyRouter() {
         consumoPrevistoPeriodoMwh: c.consumoPrevistoPeriodoMwh,
         flexibilidadePct: c.flexibilidadePct,
         takeOrPayPct: c.takeOrPayPct,
+        // Os termos da multa saem junto: sem eles, quem le o contrato pela rota
+        // nao consegue reproduzir a conta que a Autoridade faz na hora da
+        // compra -- e um numero que so uma parte sabe calcular nao e auditavel.
+        multaPisoBrl: c.multaPisoBrl ?? 0,
+        taxaAdminBrl: c.taxaAdminBrl ?? 0,
         ativo: c.ativo,
         // O gatilho operacional REAL da decisão -- não é o fim da vigência.
         // Passada a janela, o contrato rola por mais um período, e é essa a

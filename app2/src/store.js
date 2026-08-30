@@ -111,6 +111,9 @@ export function buildStore({
 
   app.get("/catalog", (req, res) => {
     const { submercado, periodo, volume_mwh: volumeRaw } = req.query;
+    // Quem pede cotacao esta pedindo SUPRIMENTO.  Rescindir e outra conversa, e
+    // so aparece quando perguntada por nome.
+    const operacao = req.query.operacao ?? "novo_contrato";
 
     // Volume inválido é erro do pedido, não filtro que não casa: devolver
     // catálogo vazio esconderia um bug do chamador atrás de "não tenho nada".
@@ -131,6 +134,7 @@ export function buildStore({
     const items = common().filter((p) => {
       if (submercado && normSubmercado(p.submercado) !== normSubmercado(submercado)) return false;
       if (periodo && !periodoMatches(periodo, p.periodo_suprimento)) return false;
+      if ((p.operacao ?? "novo_contrato") !== operacao) return false;
       // Volume que a loja não tem morre aqui: "não tenho esse volume" não é
       // questão de autorização, e cotar o que não se pode entregar é ruído.
       if (volume != null && p.stock < volume) return false;
@@ -149,6 +153,7 @@ export function buildStore({
         submercado: submercado ?? null,
         periodo: periodo ?? null,
         volume_mwh: volume,
+        operacao,
       },
       items,
     });
