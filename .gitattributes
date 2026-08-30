@@ -1,0 +1,13 @@
+# Fim de linha determinístico.
+#
+# Quatro pessoas em três máquinas (Windows, macOS, Linux) vão ramificar daqui.
+# Sem isto, o checkout de cada uma decide o fim de linha por conta própria, e um
+# arquivo tocado em duas máquinas conflita linha a linha mesmo quando as duas
+# mudaram coisas diferentes. O repositório guarda LF; cada um vê o que seu
+# editor preferir.
+* text=auto eol=lf
+
+# Binários: nunca converter.
+*.png binary
+*.jpg binary
+*.pdf binary
