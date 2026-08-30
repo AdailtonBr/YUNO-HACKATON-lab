@@ -219,7 +219,20 @@ export async function runCycle(deps) {
     note: `${contract.fornecedor} @ ${contract.precoBrlMwh} · ${contract.volumeRemanescenteMwh} MWh`,
   });
 
-  const mandates = await Mandate.find({ revoked: false }).lean();
+  // TODOS os mandatos, inclusive os mortos -- e a exclusao dos mortos aqui era
+  // um furo, nao uma otimizacao.
+  //
+  // O conjunto de molduras sai do parentMandateId DESTA lista.  Filtrando os
+  // revogados antes, um filho revogado sumia, o pai deixava de ser pai de
+  // alguem, e a guarda parava de proteger: revogar o filho PROMOVIA o pai de
+  // moldura a permissao de operar -- com quatro regras no lugar de dezessete,
+  // sem comissao declarada, sem banda de cobertura, sem teto de desconto e sem
+  // alcada.  Observado ao vivo: revogado o operacional, o ciclo fechou tres
+  // contratos sob o guarda-chuva em quinze segundos, nenhum escalado.
+  //
+  // Quem e moldura continua moldura, com o filho vivo ou morto.  Os mortos
+  // saem logo abaixo, pelo mandateStatus, que e onde essa decisao pertence.
+  const mandates = await Mandate.find({}).lean();
   if (mandates.length === 0) {
     step(cycle, STEP.OUTCOME, { note: "no active mandate" });
     return cycle;

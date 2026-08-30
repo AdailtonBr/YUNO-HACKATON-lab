@@ -468,6 +468,33 @@ test("11 · a disputa responde com os elos CALCULADOS, não afirmados", async ()
  * 12 — Revoga o mandato-pai
  * =================================================================== */
 
+test("12b · revogar o OPERACIONAL nao promove o guarda-chuva a permissao", async () => {
+  /*
+   * O inverso do teste 12, e o furo mais grave que encontramos -- ao vivo, com
+   * alguem clicando no Portal, nao num teste.
+   *
+   * O ciclo consultava `Mandate.find({ revoked: false })` e derivava o conjunto
+   * de molduras DESSA lista.  Revogado o filho, ele sumia, o pai deixava de ser
+   * pai de alguem, e a guarda parava de proteger: o guarda-chuva virava
+   * operavel, com 4 regras no lugar de 17 -- sem comissao declarada, sem banda
+   * de cobertura, sem teto de desconto e SEM ALCADA.  Em quinze segundos o
+   * agente fechou tres contratos de R$10,2 milhoes sob ele, nenhum escalado.
+   *
+   * E o teste de fogo n. 3 invertido: o juiz revoga esperando que o agente
+   * PARE, e ele acelerava, comprando sob menos limites.
+   */
+  await Mandate.updateOne({ _id: MANDATE_OPERATIONAL_ID }, { $set: { revoked: true } });
+
+  const cycle = await runCycle(agentDeps());
+
+  // Ninguem opera. O filho morreu; o pai nunca foi permissao de operar.
+  assert.equal(cycle.mandates.length, 0, "o guarda-chuva nao pode virar operavel");
+
+  // E nada foi contratado sob ele.
+  const trilho = await auditFor(MANDATE_UMBRELLA_ID);
+  assert.equal(trilho.filter((e) => e.event === "purchase_decision").length, 0);
+});
+
 test("12 · revogar o mandato da diretoria derruba o operacional em cascata", async () => {
   await Mandate.updateOne({ _id: MANDATE_UMBRELLA_ID }, { $set: { revoked: true } });
 

@@ -232,6 +232,32 @@ test("o ciclo NAO opera sob o mandato-pai: quem tem filho e moldura, nao permiss
   assert.deepEqual(plans.map((p) => p.mandate._id), ["mnd_filho"]);
 });
 
+test("REVOGAR O FILHO NAO PROMOVE O PAI: moldura revogada continua moldura", () => {
+  /*
+   * O furo que este teste fecha foi observado ao vivo.  O ciclo consultava
+   * apenas os mandatos nao revogados, e o conjunto de molduras saia dessa
+   * lista: revogado o filho, o pai deixava de ser pai de alguem e virava
+   * operavel -- com 4 regras no lugar de 17, sem alcada.  Em quinze segundos o
+   * agente fechou tres contratos sob o guarda-chuva, nenhum escalado.
+   *
+   * E o inverso do teste de fogo n. 3: o juiz revoga esperando que o agente
+   * PARE, e ele acelerava, comprando sob menos limites.
+   */
+  const pai = mandate({ _id: "mnd_pai", parentMandateId: null, constraints: [] });
+  const filho = mandate({ _id: "mnd_filho", parentMandateId: "mnd_pai", revoked: true });
+
+  const plans = planCycle({
+    mandates: [pai, filho],
+    offers: [offerOf("volt_andina")],
+    contract: DEMO.contract,
+    curve: DEMO.curve,
+    now: NOW,
+  });
+
+  // Ninguem opera: o filho morreu, e o pai nunca foi permissao.
+  assert.deepEqual(plans.map((p) => p.mandate._id), []);
+});
+
 test("um mandato sem filhos continua operando normalmente", () => {
   const plans = planCycle({
     mandates: [mandate()],
