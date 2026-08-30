@@ -42,6 +42,15 @@ const mandateSchema = new Schema(
     expiresAt: { type: Date, required: true },
     // SÓ o humano vira para true.  Esgotar por uso NÃO revoga — são fatos diferentes.
     revoked: { type: Boolean, required: true, default: false },
+    // Hierarquia: um mandato operacional deriva de um guarda-chuva da diretoria.
+    // Revogar o pai mata os filhos -- resolvido em hierarchy.js, ANTES do motor,
+    // para evaluate continuar sendo funcao pura de um mandato so.
+    parentMandateId: { type: String, default: null, index: true },
+    // Mandato nao se EDITA.  Apertar ou alargar um limite emite uma VERSAO nova,
+    // que aponta para a anterior e a revoga.  O trilho mostra as duas, e a
+    // pergunta "sob quais limites isto foi comprado?" continua tendo resposta.
+    version: { type: Number, default: 1 },
+    supersedes: { type: String, default: null },
     humanReadable: String,
     createdAt: { type: Date, default: Date.now },
   },
@@ -49,7 +58,71 @@ const mandateSchema = new Schema(
 );
 
 const merchantSchema = new Schema(
-  { _id: String, name: String, apiKeyHash: String, active: { type: Boolean, default: true } },
+  {
+    _id: String,
+    name: String,
+    apiKeyHash: String,
+    active: { type: Boolean, default: true },
+    // rating e garantia moram AQUI, e nao na oferta, por um motivo que e a
+    // espinha do produto: a vendedora e parte interessada no proprio rating.
+    // Preco ela atesta, porque e a fonte de verdade sobre a propria oferta; o
+    // proprio credito, nao.  Foi falha de contraparte que quebrou 54
+    // fornecedores no Reino Unido entre 2018 e 2025.
+    rating: { type: String, default: null }, // "A-", "BB", null = sem rating
+    garantia: { type: Boolean, default: false }, // fianca bancaria / seguro
+    whitelisted: { type: Boolean, default: false },
+  },
+  opts
+);
+
+/**
+ * O contrato de suprimento VIGENTE do cliente.
+ *
+ * E dado do comprador, nao do mercado: sem ele nao ha volume remanescente, nao
+ * ha multa rescisoria e nao ha economia a calcular.  E por isso que a economia
+ * da troca e DERIVADA pela Autoridade, e nunca afirmada por quem esta vendendo.
+ */
+const supplyContractSchema = new Schema(
+  {
+    _id: String,
+    humanId: { type: String, required: true, index: true },
+    fornecedor: String, // o incumbente: contrato vigente, nao endpoint
+    submercado: { type: String, required: true },
+    precoBrlMwh: { type: Number, required: true }, // centavos por MWh
+    inicioVigencia: Date,
+    fimVigencia: { type: Date, required: true },
+    denunciaDias: { type: Number, default: 90 }, // o gatilho operacional real
+    renovacaoAutomatica: { type: Boolean, default: true },
+    volumeRemanescenteMwh: { type: Number, required: true },
+    consumoPrevistoPeriodoMwh: { type: Number, required: true },
+    flexibilidadePct: Number,
+    takeOrPayPct: Number,
+    // Clausulas mark-to-market puras sao raras: quase sempre ha piso e taxa
+    // administrativa.  Ficam parametrizadas para o calculo nao ser ingenuo; na
+    // demo valem zero, para a aritmetica na tela bater com a do slide.
+    multaPisoBrl: { type: Number, default: 0 },
+    taxaAdminBrl: { type: Number, default: 0 },
+    ativo: { type: Boolean, default: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  opts
+);
+
+/**
+ * A curva de referencia do submercado.
+ *
+ * Lida no INSTANTE da decisao, nunca assada no mandato.  E a mesma razao da
+ * abordagem B: um teto absoluto em R$/MWh fica obsoleto em semanas, entao o
+ * mandato limita o desconto CONTRA a curva -- e a curva e consulta viva.
+ */
+const marketCurveSchema = new Schema(
+  {
+    _id: String, // submercado:periodo
+    submercado: { type: String, required: true },
+    periodo: { type: String, required: true },
+    precoBrlMwh: { type: Number, required: true }, // centavos por MWh
+    updatedAt: { type: Date, default: Date.now },
+  },
   opts
 );
 
@@ -237,4 +310,6 @@ export const AuditLog = model("AuditLog", auditSchema, "audit_log");
 export const PaymentMethod = model("PaymentMethod", paymentMethodSchema, "payment_methods");
 export const Address = model("Address", addressSchema, "addresses");
 export const Dispute = model("Dispute", disputeSchema, "disputes");
+export const SupplyContract = model("SupplyContract", supplyContractSchema, "supply_contracts");
+export const MarketCurve = model("MarketCurve", marketCurveSchema, "market_curves");
 export const Idempotency = model("Idempotency", idempotencySchema, "idempotency");

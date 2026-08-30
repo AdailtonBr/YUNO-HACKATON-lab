@@ -18,7 +18,7 @@ let mongod, server, base;
 
 const url = (path) => `${base}${path}`;
 const asHuman = { "content-type": "application/json", "x-human-id": DEMO.humanId };
-const asStoreA = { "content-type": "application/json", "x-api-key": "demo-key-store-a" };
+const asStoreA = { "content-type": "application/json", "x-api-key": "demo-key-volt" };
 
 const post = (path, body, headers) =>
   fetch(url(path), { method: "POST", headers, body: JSON.stringify(body ?? {}) });
@@ -97,7 +97,7 @@ function agentTicket(mandateId, purchase = PURCHASE, over = {}) {
     {
       agentId: DEMO.agentId,
       mandateId,
-      merchantId: "store_a",
+      merchantId: "volt_andina",
       productId: purchase.productId,
       price: purchase.price,
       currency: purchase.currency,
@@ -196,7 +196,7 @@ test("ATAQUE DA LOJA: loja registrada nao consegue cobrar sozinha", async () => 
 
   // A loja conhece mandateId e agentId de uma compra legitima, mas nao o segredo.
   const forged = issueTicket(
-    { agentId: DEMO.agentId, mandateId, merchantId: "store_a", productId: "TEN-001", price: 9800, currency: "BRL" },
+    { agentId: DEMO.agentId, mandateId, merchantId: "volt_andina", productId: "TEN-001", price: 9800, currency: "BRL" },
     "segredo-que-a-loja-inventou"
   );
   const r = await buy(mandateId, { ticket: forged });
@@ -228,7 +228,7 @@ test("loja nao registrada nem fala com a Autoridade (anti-site-fake)", async () 
 
 test("bilhete da Loja A nao vale na Loja B", async () => {
   const { mandateId } = await createMandate();
-  const ticketB = agentTicket(mandateId, PURCHASE, { merchantId: "store_b" });
+  const ticketB = agentTicket(mandateId, PURCHASE, { merchantId: "cerrado_power" });
   const r = await buy(mandateId, { ticket: ticketB }); // apresentado na Loja A
   assert.equal(r.reason.code, "ticket_merchant_mismatch");
 });
@@ -247,7 +247,7 @@ test("agente impostor com mandato de outra pessoa e recusado", async () => {
   const { mandateId } = await createMandate();
   await Agent.create({ _id: "agent_mallory", humanId: "user_mallory", hmacSecret: "s-mallory", active: true });
   const ticket = issueTicket(
-    { agentId: "agent_mallory", mandateId, merchantId: "store_a", productId: "TEN-001", price: 9800, currency: "BRL" },
+    { agentId: "agent_mallory", mandateId, merchantId: "volt_andina", productId: "TEN-001", price: 9800, currency: "BRL" },
     "s-mallory"
   );
   const r = await buy(mandateId, { ticket });

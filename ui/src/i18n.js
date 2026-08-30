@@ -56,7 +56,7 @@ const en = {
   },
 
   chat: {
-    agentName: "agent_michael",
+    agentName: "agent_aurora",
     placeholder: "Tell the agent what you want to buy…",
     send: "Send",
     strategy: "Strategy",
@@ -271,7 +271,7 @@ const pt = {
   },
 
   chat: {
-    agentName: "agent_michael",
+    agentName: "agent_aurora",
     placeholder: "Diga ao agente o que você quer comprar…",
     send: "Enviar",
     strategy: "Estratégia",

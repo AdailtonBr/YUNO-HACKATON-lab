@@ -47,6 +47,14 @@ const REASONS = {
     approval_required: () => "This mandate requires your approval for each purchase.",
     approval_refused: () => "You refused this purchase at this price, so it is not being asked again.",
     payment_declined: () => "The payment was declined.",
+    // Energia. O preco efetivo e uma conta, e uma conta afirmada nao e uma
+    // conta verificada -- mesmo idioma do total_mismatch acima.
+    commission_math_mismatch: () =>
+      "The effective price does not equal the energy price plus the declared commission.",
+    parent_revoked: (p) =>
+      `The mandate this one derives from is no longer valid${p.parent ? ` (${p.parent})` : ""}.`,
+    unknown_curve: (p) => `No reference curve for submarket "${p.submercado}".`,
+    no_active_contract: () => "There is no active supply contract to compare this offer against.",
   },
   "pt-BR": {
     ticket_missing: () => "Nenhum bilhete assinado do agente foi apresentado.",
@@ -79,6 +87,13 @@ const REASONS = {
     approval_required: () => "Este mandato exige sua aprovação a cada compra.",
     approval_refused: () => "Você recusou esta compra por este preço, então ela não é perguntada de novo.",
     payment_declined: () => "O pagamento foi recusado.",
+    // Energia.
+    commission_math_mismatch: () =>
+      "O preço efetivo não é o preço da energia mais a comissão declarada.",
+    parent_revoked: (p) =>
+      `O mandato do qual este deriva não vale mais${p.parent ? ` (${p.parent})` : ""}.`,
+    unknown_curve: (p) => `Não há curva de referência para o submercado "${p.submercado}".`,
+    no_active_contract: () => "Não há contrato de suprimento vigente para comparar com esta oferta.",
   },
 };
 
@@ -103,11 +118,31 @@ const CONSTRAINT_PHRASE = {
     // que quantidade existe, chamá-lo de gasto seria descrever o mandato errado
     // para a única pessoa que precisa entendê-lo.
     price: (c, cur) =>
-      c.op === "lte" ? `pay at most ${money(c.value, cur, "en")} per item` : `unit price ${c.op} ${c.value}`,
+      c.op === "lte" ? `pay at most ${money(c.value, cur, "en")} per MWh` : `unit price ${c.op} ${c.value}`,
     // Este sim é o teto de gasto: é o que sai da conta.
     total: (c, cur) =>
       c.op === "lte" ? `spend at most ${money(c.value, cur, "en")} in total` : `total ${c.op} ${c.value}`,
-    quantity: (c) => (c.op === "lte" ? `at most ${c.value} units` : `quantity ${c.op} ${fmt(c.value)}`),
+    quantity: (c) => (c.op === "lte" ? `at most ${fmt(c.value)} MWh` : `volume ${c.op} ${fmt(c.value)}`),
+    // Energia -- o vocabulario do §4 do escopo, camada a camada.
+    submercado: (c) => (c.op === "eq" ? `in submarket ${c.value}` : `submarket ${c.op} ${fmt(c.value)}`),
+    fonte: (c) => (c.op === "in" ? `from ${fmt(c.value)} sources` : `source ${c.op} ${fmt(c.value)}`),
+    estrutura_preco: (c) => (c.op === "eq" ? `at a ${c.value} price` : `price structure ${c.op} ${fmt(c.value)}`),
+    prazo_meses: (c) => (c.op === "lte" ? `for no longer than ${c.value} months` : `term ${c.op} ${c.value} months`),
+    flexibilidade_pct: (c) => (c.op === "gte" ? `with at least ±${c.value}% flexibility` : `flexibility ${c.op} ${c.value}%`),
+    take_or_pay_pct: (c) => (c.op === "lte" ? `take-or-pay of at most ${c.value}%` : `take-or-pay ${c.op} ${c.value}%`),
+    comissao_terceiro: (c) =>
+      c.op === "eq" && c.value === 0
+        ? "never from a seller who pays my agent a commission"
+        : `third-party commission ${c.op} ${c.value}`,
+    desconto_vs_curva_pct: (c) =>
+      c.op === "gte" ? `at least ${c.value}% below the market curve` : `discount vs curve ${c.op} ${c.value}%`,
+    economia_liquida_brl: (c, cur) =>
+      c.op === "lte" ? `ask me before committing more than ${money(c.value, cur, "en")} of net saving` : `net saving ${c.op} ${c.value}`,
+    cobertura_pct: (c) => (c.op === "gte" ? `covering at least ${c.value}% of my load` : `covering at most ${c.value}% of my load`),
+    exposicao_pld_brl: (c, cur) => `spot exposure of at most ${money(c.value, cur, "en")}`,
+    rating: (c) => (c.op === "in" ? `only from counterparties rated ${fmt(c.value)}` : `rating ${c.op} ${fmt(c.value)}`),
+    garantia: (c) => (c.value ? "only from counterparties that post a guarantee" : `guarantee ${c.op} ${c.value}`),
+    operacao: (c) => (c.op === "eq" ? `only to sign a new contract, never to terminate one` : `operation ${c.op} ${fmt(c.value)}`),
     category: (c) => (c.op === "eq" ? `buy only ${c.value}` : `category ${c.op} ${fmt(c.value)}`),
     ship_country: (c) => (c.op === "eq" ? `only from sellers in ${c.value}` : `shipping country ${c.op} ${fmt(c.value)}`),
     size: (c) => (c.op === "eq" ? `size ${c.value}` : `size ${c.op} ${fmt(c.value)}`),
@@ -117,10 +152,30 @@ const CONSTRAINT_PHRASE = {
   },
   "pt-BR": {
     price: (c, cur) =>
-      c.op === "lte" ? `pagar no máximo ${money(c.value, cur, "pt-BR")} por unidade` : `preço unitário ${c.op} ${c.value}`,
+      c.op === "lte" ? `pagar no máximo ${money(c.value, cur, "pt-BR")} por MWh` : `preço unitário ${c.op} ${c.value}`,
     total: (c, cur) =>
       c.op === "lte" ? `gastar no máximo ${money(c.value, cur, "pt-BR")} no total` : `total ${c.op} ${c.value}`,
-    quantity: (c) => (c.op === "lte" ? `no máximo ${c.value} unidades` : `quantidade ${c.op} ${fmt(c.value)}`),
+    quantity: (c) => (c.op === "lte" ? `no máximo ${fmt(c.value)} MWh` : `volume ${c.op} ${fmt(c.value)}`),
+    // Energia -- o vocabulario do §4 do escopo, camada a camada.
+    submercado: (c) => (c.op === "eq" ? `no submercado ${c.value}` : `submercado ${c.op} ${fmt(c.value)}`),
+    fonte: (c) => (c.op === "in" ? `de fonte ${fmt(c.value)}` : `fonte ${c.op} ${fmt(c.value)}`),
+    estrutura_preco: (c) => (c.op === "eq" ? `a preço ${c.value}` : `estrutura de preço ${c.op} ${fmt(c.value)}`),
+    prazo_meses: (c) => (c.op === "lte" ? `por no máximo ${c.value} meses` : `prazo ${c.op} ${c.value} meses`),
+    flexibilidade_pct: (c) => (c.op === "gte" ? `com flexibilidade de pelo menos ±${c.value}%` : `flexibilidade ${c.op} ${c.value}%`),
+    take_or_pay_pct: (c) => (c.op === "lte" ? `take-or-pay de no máximo ${c.value}%` : `take-or-pay ${c.op} ${c.value}%`),
+    comissao_terceiro: (c) =>
+      c.op === "eq" && c.value === 0
+        ? "nunca de vendedor que pague comissão ao meu agente"
+        : `comissão de terceiro ${c.op} ${c.value}`,
+    desconto_vs_curva_pct: (c) =>
+      c.op === "gte" ? `pelo menos ${c.value}% abaixo da curva de mercado` : `desconto vs curva ${c.op} ${c.value}%`,
+    economia_liquida_brl: (c, cur) =>
+      c.op === "lte" ? `me perguntar antes de fechar mais de ${money(c.value, cur, "pt-BR")} de economia líquida` : `economia líquida ${c.op} ${c.value}`,
+    cobertura_pct: (c) => (c.op === "gte" ? `cobrindo pelo menos ${c.value}% da minha carga` : `cobrindo no máximo ${c.value}% da minha carga`),
+    exposicao_pld_brl: (c, cur) => `exposição ao PLD de no máximo ${money(c.value, cur, "pt-BR")}`,
+    rating: (c) => (c.op === "in" ? `só de contrapartes com rating ${fmt(c.value)}` : `rating ${c.op} ${fmt(c.value)}`),
+    garantia: (c) => (c.value ? "só de contrapartes que prestem garantia" : `garantia ${c.op} ${c.value}`),
+    operacao: (c) => (c.op === "eq" ? `só para assinar contrato novo, nunca para rescindir` : `operação ${c.op} ${fmt(c.value)}`),
     category: (c) => (c.op === "eq" ? `comprar só ${c.value}` : `categoria ${c.op} ${fmt(c.value)}`),
     ship_country: (c) => (c.op === "eq" ? `só de vendedores em ${c.value}` : `país de origem ${c.op} ${fmt(c.value)}`),
     size: (c) => (c.op === "eq" ? `tamanho ${c.value}` : `tamanho ${c.op} ${fmt(c.value)}`),

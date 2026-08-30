@@ -6,8 +6,8 @@
  * mexe em mais nada.
  */
 
-export const HUMAN_ID = "user_michael";
-export const AGENT_ID = "agent_michael";
+export const HUMAN_ID = "user_aurora";
+export const AGENT_ID = "agent_aurora";
 
 const headers = (locale) => ({
   "content-type": "application/json",

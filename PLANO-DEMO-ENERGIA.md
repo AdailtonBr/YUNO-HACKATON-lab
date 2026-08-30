@@ -7,7 +7,13 @@
 
 ## Como usar este documento
 
-1. **Uma pessoa** executa a **Fase 0** (o congelamento) e faz merge em `main`. **Ninguém começa antes disso.**
+> ## ✅ A Fase 0 está FEITA e em `main`. Pode começar.
+>
+> `git pull` e siga o passo 2. Os contratos congelados estão em
+> [`docs/12-vocabulario-energia.md`](docs/12-vocabulario-energia.md), e
+> `app1/test/freeze.test.js` (14 testes) trava os números da demo. **125 testes verdes.**
+
+1. ~~Uma pessoa executa a Fase 0 e faz merge em `main`.~~ **Feito.**
 2. Cada pessoa assume **uma frente** (A, B, C ou D), cria a branch e abre o Claude Code no repo:
 
    ```bash
@@ -247,9 +253,34 @@ Com um cliente só, é a hierarquia que dá o contraste "executa sozinho vs. esc
 
 ---
 
-## Fase 0 — O congelamento
+## Fase 0 — O congelamento ✅ FEITA
 
-**Uma pessoa · ~3h · bloqueante · merge direto em `main`.** É o único ponto de falha do plano.
+Entregue em `main`. **125 testes verdes** (`npm test`), incluindo 14 novos em
+`app1/test/freeze.test.js` que travam os números da demo contra o motor real.
+
+### O que mudou em relação ao que este plano previa
+
+Quatro desvios, todos por um motivo que apareceu ao executar:
+
+| Previsto | Feito | Por quê |
+|---|---|---|
+| `energy.js` e `hierarchy.js` só com assinaturas | **implementados** | eram a única forma de o teste do congelamento provar que os contratos fecham. E o formato do que eles devolvem é o que B, C e D consomem — congelar a assinatura sem congelar o comportamento não congelava nada. **A Frente A continua dona deles**, e ainda tem introspect, `routes.energy.js`, supersede e os elos da disputa |
+| `app2/src/catalogs.js` só com portas por env | **esqueleto das 3 comercializadoras** | com os catálogos de tênis e ids fora da allow-list, `npm run dev` nasceria quebrado e C e D ficariam bloqueadas esperando B. O esqueleto tem **uma** oferta por comercializadora e **um** formato interno compartilhado — a Frente B ainda faz os três formatos distintos (é o que prova o adaptador), o RFQ, o painel e o bilhete forjado |
+| apagar `watcher.test.js` | **mantido** | é puro, passa, e serve de referência para a Frente C reescrever |
+| manter `profile.test.js` | **apagado** | importava `STORES.store_a`, que deixou de existir. `llm.js` segue dormente, agora sem testes |
+| 12 variáveis de porta | **uma só: `PORT_OFFSET`** | `0/10/20/30` reproduz a tabela inteira dos 3 dispositivos |
+
+### Duas decisões que o próprio teste forçou
+
+- **Os mandatos não são semeados.** Semeá-los quebrou o teste *"o agente deposita proposta, não
+  mandato"* — e o teste estava certo: um sistema que nasce com autorizações já concedidas contradiz a
+  primeira cena da demo. Use `SEED_MANDATES=1` para desenvolver sem clicar.
+- **A regra de `concentracao_pct` saiu do mandato operacional.** Com um contrato substituindo outro,
+  100% do volume vai para uma contraparte por construção, e qualquer teto recusaria até a oferta boa.
+  O atributo continua no vocabulário. Regra que nunca casa não protege, atrapalha.
+
+<details>
+<summary>O que a Fase 0 entregou, item a item</summary>
 
 1. `docs/12-vocabulario-energia.md` — copiar a seção "Contratos congelados" deste documento.
 2. `app1/src/authority/models.js` — **todas** as mudanças de schema de uma vez:
@@ -271,8 +302,11 @@ Com um cliente só, é a hierarquia que dá o contraste "executa sozinho vs. esc
    `app1/src/agent/llm.js` e `profile.test.js` ficam **dormentes** no repo: não custam nada e são
    argumento de defesa ("IA rascunha, determinístico decide").
 
-**A Fase 0 só termina quando o teste 1 passa ponta a ponta com dados falsos** (walking skeleton) e
-`npm test` está verde. Sem isso, 4 pessoas constroem sobre um contrato não validado.
+</details>
+
+O walking skeleton acabou sendo **melhor** que o previsto: em vez de "o teste 1 passa com dados
+falsos", `freeze.test.js` prova os números **verdadeiros** do escopo (multa de R$798.000, economia de
+R$210.000 na Volt, −R$168.000 na Helios) contra o motor de constraints real, sem rede e sem banco.
 
 ---
 

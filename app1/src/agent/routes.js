@@ -14,20 +14,27 @@ import { runTurn, windowHistory } from "./llm.js";
 
 // Lidos a cada chamada, não na carga do módulo: os testes sobem tudo em portas
 // efêmeras, e config lida cedo demais congela endereços que ainda não existem.
-const authorityUrl = () => process.env.AUTHORITY_SELF_URL ?? "http://127.0.0.1:3001";
+const OFFSET = Number(process.env.PORT_OFFSET ?? 0);
+const at = (n, env) => process.env[env] ?? `http://127.0.0.1:${n + OFFSET}`;
+
+const authorityUrl = () => process.env.AUTHORITY_SELF_URL ?? at(3001, "AUTHORITY_URL");
 
 const knownStores = () => [
-  { id: "store_a", url: process.env.STORE_A_URL ?? "http://127.0.0.1:4001" },
-  { id: "store_b", url: process.env.STORE_B_URL ?? "http://127.0.0.1:4002" },
+  { id: "volt_andina", url: at(4001, "STORE_VOLT_URL") },
+  { id: "cerrado_power", url: at(4002, "STORE_CERRADO_URL") },
+  { id: "helios_trading", url: at(4003, "STORE_HELIOS_URL") },
 ];
-const unregisteredStore = () => ({ id: "store_fake", url: process.env.STORE_FAKE_URL ?? "http://127.0.0.1:4003" });
+// Uma comercializadora FORA da allow-list, para a demo do anti-slamming: ela
+// existe do lado de fora, o agente ate tenta, e a Autoridade recusa na porta.
+// Nao ha ninguem escutando em 4004 ate alguem subir uma -- Frente B, se sobrar.
+const unregisteredStore = () => ({ id: "nao_credenciada", url: at(4004, "STORE_FAKE_URL") });
 
 // O agente guarda o PRÓPRIO segredo.  Ele não tem, e não precisa ter, acesso ao
 // banco da Autoridade — tudo o que sabe do mandato vem da rota pública de leitura.
 const agentCredential = () => ({
-  id: process.env.AGENT_ID ?? "agent_michael",
-  secret: process.env.AGENT_SECRET ?? "demo-agent-secret-michael",
-  humanId: process.env.HUMAN_ID ?? "user_michael",
+  id: process.env.AGENT_ID ?? "agent_aurora",
+  secret: process.env.AGENT_SECRET ?? "demo-agent-secret-aurora",
+  humanId: process.env.HUMAN_ID ?? "user_aurora",
 });
 
 /**

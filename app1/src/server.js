@@ -4,7 +4,14 @@ import { buildApp } from "./app.js";
 import { seed } from "./seed.js";
 import { startWatcher } from "./agent/watcher.js";
 
-const PORT = process.env.PORT ?? 3001;
+/**
+ * Um unico deslocamento move TUDO junto -- Autoridade, comercializadoras e UI.
+ * E o que permite tres maquinas rodarem a pilha inteira ao mesmo tempo, sem
+ * conflito de porta: PORT_OFFSET=0, 10, 20, 30.
+ */
+const OFFSET = Number(process.env.PORT_OFFSET ?? 0);
+const PORT = Number(process.env.PORT ?? 3001 + OFFSET);
+const storeUrl = (n, env) => process.env[env] ?? `http://127.0.0.1:${n + OFFSET}`;
 
 // Aceita os dois nomes: o do repo e o que aparece em projetos Node por aí.
 const uriFromEnv = () => process.env.MONGODB_URI || process.env.MONGO_URL || null;
@@ -67,11 +74,12 @@ await seed();
 if (process.env.WATCHER !== "off") {
   startWatcher({
     stores: [
-      { id: "store_a", url: process.env.STORE_A_URL ?? "http://127.0.0.1:4001" },
-      { id: "store_b", url: process.env.STORE_B_URL ?? "http://127.0.0.1:4002" },
+      { id: "volt_andina", url: storeUrl(4001, "STORE_VOLT_URL") },
+      { id: "cerrado_power", url: storeUrl(4002, "STORE_CERRADO_URL") },
+      { id: "helios_trading", url: storeUrl(4003, "STORE_HELIOS_URL") },
     ],
-    agentId: process.env.AGENT_ID ?? "agent_michael",
-    agentSecret: process.env.AGENT_SECRET ?? "demo-agent-secret-michael",
+    agentId: process.env.AGENT_ID ?? "agent_aurora",
+    agentSecret: process.env.AGENT_SECRET ?? "demo-agent-secret-aurora",
   });
 }
 
@@ -79,5 +87,5 @@ buildApp().listen(PORT, () => {
   console.log(`Authority listening on :${PORT}`);
   // Nunca imprimimos a URI: ela carrega usuário e senha.
   console.log(`  mongo: ${ephemeral ? "in-memory (data is lost on restart)" : "connected"}`);
-  console.log(`  seeded: store_a, store_b (allow-list) + agent_michael`);
+  console.log(`  seeded: volt_andina, cerrado_power, helios_trading (allow-list) + agent_aurora`);
 });

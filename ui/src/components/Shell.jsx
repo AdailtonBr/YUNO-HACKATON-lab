@@ -92,7 +92,7 @@ export default function Shell({
 
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden font-mono text-[11.5px] text-stone-500 md:inline">
-              {T("topbar.agent")} <span className="text-stone-800">agent_michael</span>
+              {T("topbar.agent")} <span className="text-stone-800">agent_aurora</span>
             </span>
 
             <div className="flex overflow-hidden rounded border border-stone-300">
