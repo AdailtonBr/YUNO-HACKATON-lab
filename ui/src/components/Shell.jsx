@@ -14,7 +14,10 @@ import { Chip, Label, Meter, TONE } from "./ui.jsx";
 
 // O portal nao e a superficie do agente: ele mostra ao gestor os limites, as
 // decisoes e a trilha que a Autoridade sustenta.
-const NAV = ["issue", "cycle", "approvals", "mandates", "curve", "audit"];
+// A carteira vem primeiro porque e o pre-requisito: sem conta de liquidacao
+// cadastrada, o botao de emitir mandato nasce desabilitado -- e o item que
+// resolve isso tem que estar visivel, nao escondido no fim da lista.
+const NAV = ["wallet", "issue", "cycle", "approvals", "mandates", "curve", "audit"];
 
 export default function Shell({
   locale,

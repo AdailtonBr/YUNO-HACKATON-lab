@@ -7,6 +7,7 @@ import ApprovalQueue from "./components/ApprovalQueue.jsx";
 import Mandates from "./components/Mandates.jsx";
 import AuditTrail from "./components/AuditTrail.jsx";
 import EnergyPortal from "./components/EnergyPortal.jsx";
+import Wallet from "./components/Wallet.jsx";
 
 const POLL_MS = 5000;
 
@@ -101,6 +102,7 @@ export default function App() {
       >
         {err && <div className="mb-5 rounded border border-red-200 bg-red-50 px-4 py-3 font-mono text-[12.5px] text-red-700">{err}</div>}
 
+        {tab === "wallet" && <Wallet locale={locale} methods={methods} reload={reload} />}
         {tab === "issue" && <EnergyPortal.Issuer locale={locale} methods={methods} reload={reload} />}
         {tab === "cycle" && <EnergyPortal.DailyCycle locale={locale} cycle={cycle} trail={trail} />}
         {tab === "approvals" && <ApprovalQueue locale={locale} approvals={approvals} reload={reload} />}

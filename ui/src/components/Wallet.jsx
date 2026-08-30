@@ -1,14 +1,23 @@
 /**
- * A carteira: meios de pagamento e endereços de entrega.
+ * As contas de liquidação da empresa.
  *
  * Faz parte da Trusted Surface, e pela mesma razão dela: o instrumento cru
  * entra **aqui**, com o humano presente, e não volta.  Esta tela lista
- * rótulos — `•••• 4242`, `Casa` — nunca o número nem a rua.
+ * rótulos — `financeiro@aurora.com.br`, `•••• 4242` — nunca a credencial.
  *
- * O agente enxerga exatamente o que esta tela mostra: que existe um método
- * chamado `•••• 4242` e um endereço chamado `Casa`.  Ele não sabe o número, não
- * sabe onde é Casa, e não conhece o `paymentMethodRef` — a tradução de id para
- * ponteiro acontece dentro da Autoridade, no instante em que você autoriza.
+ * É a única tela que prova, e não afirma, o "sem entregar o cartão cru" do
+ * enunciado: o dado sensível atravessa esta caixa uma vez, vira um
+ * `paymentMethodRef` opaco, e a partir daí nem o agente nem a comercializadora
+ * voltam a vê-lo.  Quem traduz o id no ponteiro que cobra é a Autoridade, no
+ * instante em que você autoriza um mandato.
+ *
+ * O agente enxerga exatamente o que esta tela mostra: que existe uma conta
+ * chamada `financeiro@aurora.com.br`.  Ele não conhece a chave, e não conhece
+ * o ponteiro.
+ *
+ * Sem painel de endereços, de propósito: energia não se entrega num endereço.
+ * O mandato de suprimento nasce com `shippingAddressId: null`, e as rotas
+ * `/wallet/addresses` seguem de pé para quem precisar delas noutra vertical.
  */
 
 import { useState } from "react";
@@ -16,18 +25,17 @@ import { api } from "../api.js";
 import { t } from "../i18n.js";
 import { Button, Chip, Field, Input, Label, Panel, PanelHead, ScreenHead, Select, Empty, Mono } from "./ui.jsx";
 
-export default function Wallet({ locale, methods, addresses, reload }) {
+export default function Wallet({ locale, methods, reload }) {
   const T = (k) => t(locale, k);
   const [busy, setBusy] = useState(false);
-  const [card, setCard] = useState({ rail: "card", number: "4242424242424242", key: "michael@pix.com" });
-  const [addr, setAddr] = useState({ label: "", address: "" });
+  const [conta, setConta] = useState({ rail: "pix", number: "4242424242424242", key: "financeiro@aurora.com.br" });
 
   const addMethod = async () => {
     setBusy(true);
     try {
       await api.addMethod(
-        card.rail,
-        card.rail === "card" ? { number: card.number, exp: "12/29" } : { key: card.key },
+        conta.rail,
+        conta.rail === "card" ? { number: conta.number, exp: "12/29" } : { key: conta.key },
         locale
       );
       await reload();
@@ -36,22 +44,10 @@ export default function Wallet({ locale, methods, addresses, reload }) {
     }
   };
 
-  const addAddress = async () => {
-    if (!addr.label.trim() || !addr.address.trim()) return;
+  const remove = (id) => async () => {
     setBusy(true);
     try {
-      await api.addAddress(addr.label, addr.address, locale);
-      setAddr({ label: "", address: "" });
-      await reload();
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const remove = (fn, id) => async () => {
-    setBusy(true);
-    try {
-      await fn(id, locale);
+      await api.removeMethod(id, locale);
       await reload();
     } finally {
       setBusy(false);
@@ -62,8 +58,7 @@ export default function Wallet({ locale, methods, addresses, reload }) {
     <>
       <ScreenHead title={T("wallet.title")} note={T("wallet.note")} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* ------------------------- pagamento ------------------------- */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Panel>
           <PanelHead title={T("wallet.methods")} note={T("wallet.methodsNote")} />
 
@@ -82,7 +77,7 @@ export default function Wallet({ locale, methods, addresses, reload }) {
                       <Mono value={m.methodId} />
                     </p>
                   </div>
-                  <Button variant="refuse" onClick={remove(api.removeMethod, m.methodId)} disabled={busy}>
+                  <Button variant="refuse" onClick={remove(m.methodId)} disabled={busy}>
                     {T("wallet.remove")}
                   </Button>
                 </li>
@@ -93,18 +88,18 @@ export default function Wallet({ locale, methods, addresses, reload }) {
           <div className="space-y-3 border-t border-stone-200/70 px-5 py-4">
             <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-3">
               <Field label={T("wallet.rail")}>
-                <Select value={card.rail} onChange={(e) => setCard({ ...card, rail: e.target.value })}>
-                  <option value="card">card</option>
+                <Select value={conta.rail} onChange={(e) => setConta({ ...conta, rail: e.target.value })}>
                   <option value="pix">pix</option>
+                  <option value="card">card</option>
                 </Select>
               </Field>
-              {card.rail === "card" ? (
+              {conta.rail === "card" ? (
                 <Field label={T("wallet.cardNumber")} hint={T("wallet.rawHint")}>
-                  <Input value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value })} />
+                  <Input value={conta.number} onChange={(e) => setConta({ ...conta, number: e.target.value })} />
                 </Field>
               ) : (
                 <Field label={T("wallet.pixKey")} hint={T("wallet.rawHint")}>
-                  <Input value={card.key} onChange={(e) => setCard({ ...card, key: e.target.value })} />
+                  <Input value={conta.key} onChange={(e) => setConta({ ...conta, key: e.target.value })} />
                 </Field>
               )}
             </div>
@@ -114,50 +109,15 @@ export default function Wallet({ locale, methods, addresses, reload }) {
           </div>
         </Panel>
 
-        {/* -------------------------- endereços ------------------------ */}
-        <Panel>
-          <PanelHead title={T("wallet.addresses")} note={T("wallet.addressesNote")} />
-
-          {addresses.length === 0 ? (
-            <Empty>{T("wallet.noAddresses")}</Empty>
-          ) : (
-            <ul className="divide-y divide-stone-100">
-              {addresses.map((a) => (
-                <li key={a.addressId} className="flex items-center justify-between gap-3 px-5 py-3">
-                  <div className="min-w-0">
-                    <span className="font-sans text-[14px] font-semibold text-stone-900">{a.label}</span>
-                    <p className="mt-1">
-                      <Mono value={a.addressId} />
-                    </p>
-                  </div>
-                  <Button variant="refuse" onClick={remove(api.removeAddress, a.addressId)} disabled={busy}>
-                    {T("wallet.remove")}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <div className="space-y-3 border-t border-stone-200/70 px-5 py-4">
-            <Field label={T("wallet.addressLabel")} hint={T("wallet.addressLabelHint")}>
-              <Input
-                value={addr.label}
-                onChange={(e) => setAddr({ ...addr, label: e.target.value })}
-                placeholder="Home"
-              />
-            </Field>
-            <Field label={T("wallet.address")} hint={T("wallet.rawHint")}>
-              <Input
-                value={addr.address}
-                onChange={(e) => setAddr({ ...addr, address: e.target.value })}
-                placeholder="Rua …, 123 — São Paulo"
-              />
-            </Field>
-            <Button onClick={addAddress} disabled={busy} className="w-full">
-              {T("wallet.addAddress")}
-            </Button>
-          </div>
-        </Panel>
+        {/* O que NÃO fica guardado aqui — o contraponto do painel do mandato. */}
+        <aside className="h-fit rounded border border-amber-200/70 bg-amber-50/40 px-5 py-4">
+          <Label>{T("wallet.notStored")}</Label>
+          <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-stone-700">
+            <li>• {T("wallet.notStored1")}</li>
+            <li>• {T("wallet.notStored2")}</li>
+            <li>• {T("wallet.notStored3")}</li>
+          </ul>
+        </aside>
       </div>
 
       <p className="mt-4 font-mono text-[11.5px] text-stone-500">{T("wallet.footer")}</p>
