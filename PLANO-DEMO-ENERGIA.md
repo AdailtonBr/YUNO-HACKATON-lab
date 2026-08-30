@@ -336,7 +336,22 @@ R$210.000 na Volt, −R$168.000 na Helios) contra o motor de constraints real, s
 
 ## Frente A — Núcleo de energia (Autoridade)
 
-> A mais pesada e a chave de abóbada. Faça primeiro `energy.js`, que destrava as outras três.
+> A mais pesada e a chave de abóbada. `energy.js` e `hierarchy.js` já vieram implementados da Fase 0;
+> o que falta é ligá-los ao caminho da compra.
+
+### Comece por aqui: onde a compra para hoje
+
+Tudo já responde por HTTP — as 3 comercializadoras servem o catálogo, o agente assina o bilhete, a
+loja repassa e chama `/introspect`. A compra para num ponto só, e é o seu primeiro commit:
+
+```
+ok=false  action=reject
+The store did not report "rating", and the mandate requires it.
+```
+
+A loja **não** informou o `rating` — e não deve mesmo informar, nunca. Falta a Autoridade injetar os
+atributos derivados antes de chamar `evaluate`. No instante em que `introspect.js` fizer isso, a
+Volt Andina passa em todas as regras duras e escala pela alçada: é o teste 1 inteiro.
 
 ### `app1/src/authority/energy.js` *(novo)* — funções **puras**, sem I/O
 
