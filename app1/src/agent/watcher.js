@@ -388,16 +388,16 @@ export async function attemptOffer({ mandate, offer, contract, curve, deps, quan
  * §4.6 — e o número aqui não muda nada além de com que frequência se pergunta.
  */
 /**
- * O ultimo ciclo, legivel de fora.
+ * O último ciclo, para quem quiser olhar.
  *
- * A tela "Daily cycle" e onde o raciocinio do agente aparece -- a curva lida, o
- * RFQ enviado, cada oferta com o seu veredito.  Ela pedia
- * `GET /agent/cycles/latest` desde que foi escrita, e a rota nunca existiu: a UI
- * engolia o 404 num `.catch(() => null)` e mostrava o estado vazio para sempre.
- * O ciclo ja era guardado aqui; faltava alguem poder ler.
+ * Vive em memória e no processo do agente, e isso é a coisa certa: é o
+ * RASCUNHO do agente, não o registro da decisão.  O registro é o `audit_log`,
+ * que a Autoridade escreve e que sobrevive ao restart.  Perder isto num
+ * reinício não perde nada que alguém possa precisar depois — some a tabela de
+ * comparação, e o veredito continua no trilho.
  */
-let ultimoCiclo = null;
-export const latestCycle = () => ultimoCiclo;
+let lastCycle = null;
+export const latestCycle = () => lastCycle;
 
 export function startWatcher(deps) {
   const interval = Number(process.env.WATCHER_INTERVAL_MS ?? 5000);
@@ -410,7 +410,7 @@ export function startWatcher(deps) {
     running = true;
     try {
       last = await runCycle({ ...deps, maxMandates });
-      ultimoCiclo = last;
+      lastCycle = last;
       for (const line of formatCycle(last)) console.log(`[cycle] ${line}`);
     } catch (e) {
       console.warn("[cycle] tick failed:", e.message);

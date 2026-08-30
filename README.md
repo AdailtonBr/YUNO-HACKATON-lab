@@ -1,4 +1,6 @@
-# Agentic Mandate
+# Charter
+
+> *Authority, with limits.*
 
 > **NextWave Hackathon 2026** (Yuno × Nauta) — Challenge 1, *"The Buyer Who Isn't Human"*.
 

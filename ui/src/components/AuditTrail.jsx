@@ -40,43 +40,43 @@ function DisputeResult({ locale, result }) {
         <Label>{T("audit.disputeTitle")}</Label>
         <p
           className={`mt-1 font-sans text-[15px] font-semibold ${
-            tone === "allow" ? "text-emerald-900" : tone === "deny" ? "text-red-900" : "text-stone-700"
+            tone === "allow" ? "text-allow-ink" : tone === "deny" ? "text-deny-ink" : "text-ink-dim"
           }`}
         >
           {title}
         </p>
         {result.verdict !== "nothing_charged" && (
-          <p className="mt-1 font-sans text-[13px] leading-relaxed text-stone-600">
+          <p className="mt-1 font-sans text-[13px] leading-relaxed text-ink-dim">
             {T(result.verdict === "authorized" ? "audit.disputeAuthorizedNote" : "audit.disputeNotAuthorizedNote")}
           </p>
         )}
       </div>
 
       {result.evidence.length > 0 && (
-        <ul className="divide-y divide-stone-200/70 border-t border-stone-200/70 bg-white/70">
+        <ul className="divide-y divide-line border-t border-line bg-surface">
           {result.evidence.map((e) => (
             <li key={e.key} className="flex items-start gap-3 px-4 py-2.5">
               <Chip tone={e.ok === true ? "allow" : e.ok === null ? "mute" : "deny"} dot={e.ok !== null}>
                 {e.ok === true ? "ok" : e.ok === null ? "n/a" : "missing"}
               </Chip>
               <div className="min-w-0">
-                <p className="font-sans text-[13px] text-stone-800">{T(`audit.link.${e.key}`)}</p>
+                <p className="font-sans text-[13px] text-ink">{T(`audit.link.${e.key}`)}</p>
                 {e.ok === null && (
-                  <p className="font-mono text-[11.5px] text-stone-400">{T("audit.notApplicable")}</p>
+                  <p className="font-mono text-[11.5px] text-ink-faint">{T("audit.notApplicable")}</p>
                 )}
-                {e.terms && <p className="font-mono text-[11.5px] text-stone-500">{e.terms}</p>}
+                {e.terms && <p className="font-mono text-[11.5px] text-ink-dim">{e.terms}</p>}
                 {e.by && (
-                  <p className="font-mono text-[11.5px] text-stone-500">
+                  <p className="font-mono text-[11.5px] text-ink-dim">
                     {e.by} · {new Date(e.ts).toLocaleString(locale === "pt" ? "pt-BR" : "en-US")}
                   </p>
                 )}
                 {e.key === "agent_identity" && e.ok === false && (
-                  <p className="font-mono text-[11.5px] text-red-700">
+                  <p className="font-mono text-[11.5px] text-deny-ink">
                     {e.claimed} ≠ {e.mandateHolder}
                   </p>
                 )}
                 {e.key === "charged_what_was_verified" && e.ok === false && (
-                  <p className="font-mono text-[11.5px] text-red-700">
+                  <p className="font-mono text-[11.5px] text-deny-ink">
                     {money(e.verified, "BRL", locale)} → {money(e.charged ?? 0, "BRL", locale)}
                   </p>
                 )}
@@ -146,11 +146,11 @@ export default function AuditTrail({ locale, trail }) {
           ["merchant", "audit.viewMerchant"],
           ["auditor", "audit.viewAuditor"],
         ].map(([id, label]) => (
-          <button key={id} onClick={() => setView(id)} className={`rounded border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition ${view === id ? "border-stone-800 bg-stone-900 text-white" : "border-stone-300 bg-white text-stone-600 hover:bg-stone-50"}`}>
+          <button key={id} onClick={() => setView(id)} className={`rounded border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition ${view === id ? "border-ink bg-ink text-ink-invert" : "border-line-strong bg-surface text-ink-dim hover:bg-surface-2"}`}>
             {T(label)}
           </button>
         ))}
-        <span className="h-4 w-px bg-stone-200" />
+        <span className="h-4 w-px bg-line" />
         <Label className="mr-1">{T("audit.filter")}</Label>
         {FILTERS.map((f) => (
           <button
@@ -158,8 +158,8 @@ export default function AuditTrail({ locale, trail }) {
             onClick={() => setFilter(f)}
             className={`rounded border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition ${
               filter === f
-                ? "border-stone-800 bg-stone-900 text-white"
-                : "border-stone-300 bg-white text-stone-600 hover:bg-stone-50"
+                ? "border-ink bg-ink text-ink-invert"
+                : "border-line-strong bg-surface text-ink-dim hover:bg-surface-2"
             }`}
           >
             {f === "all" ? T("audit.all") : EVENT_LABEL[locale][f] ?? f}
@@ -174,7 +174,7 @@ export default function AuditTrail({ locale, trail }) {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-stone-200 bg-stone-50 text-left">
+                <tr className="border-b border-line bg-surface-2 text-left">
                   <th className="px-4 py-2.5"><Label>{T("audit.seq")}</Label></th>
                   <th className="px-3 py-2.5"><Label>{T("audit.time")}</Label></th>
                   <th className="px-3 py-2.5"><Label>{T("audit.event")}</Label></th>
@@ -193,14 +193,14 @@ export default function AuditTrail({ locale, trail }) {
                       <tr
                         key={i}
                         onClick={() => expandable && setOpen(isOpen ? null : i)}
-                        className={`border-b border-stone-100 last:border-0 ${
-                          expandable ? "cursor-pointer hover:bg-stone-50" : ""
-                        } ${isOpen ? "bg-stone-50" : ""}`}
+                        className={`border-b border-line last:border-0 ${
+                          expandable ? "cursor-pointer hover:bg-surface-2" : ""
+                        } ${isOpen ? "bg-surface-2" : ""}`}
                       >
-                        <td className="whitespace-nowrap px-4 py-2.5 font-mono text-[12px] text-stone-400">
+                        <td className="whitespace-nowrap px-4 py-2.5 font-mono text-[12px] text-ink-faint">
                           #{String(seq).padStart(4, "0")}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[12px] tabular-nums text-stone-600">
+                        <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[12px] tabular-nums text-ink-dim">
                           {new Date(e.ts).toLocaleTimeString(locale === "pt" ? "pt-BR" : "en-US")}
                         </td>
                         <td className="px-3 py-2.5">
@@ -208,7 +208,7 @@ export default function AuditTrail({ locale, trail }) {
                             {EVENT_LABEL[locale][e.event] ?? e.event}
                           </Chip>
                         </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[12.5px] tabular-nums text-stone-800">
+                        <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[12.5px] tabular-nums text-ink">
                           {e.purchase?.price != null ? money(e.purchase.price, e.purchase.currency, locale) : "—"}
                         </td>
                         <td className="px-3 py-2.5">
@@ -218,18 +218,18 @@ export default function AuditTrail({ locale, trail }) {
                                 {DECISION_LABEL[locale][e.decision] ?? e.decision}
                               </Chip>
                             )}
-                            <span className="font-mono text-[12px] text-stone-500">
+                            <span className="font-mono text-[12px] text-ink-dim">
                               {e.reasonText ?? (e.receiptId ? <Mono value={e.receiptId} copy /> : "")}
                             </span>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11.5px] text-stone-500">
+                        <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11.5px] text-ink-dim">
                           {ACTOR_MARK[e.actor?.type] ?? "—"}
                         </td>
                       </tr>
                       {isOpen && (
-                        <tr key={`${i}-detail`} className="border-b border-stone-100">
-                          <td colSpan={6} className="bg-stone-50 px-4 py-4">
+                        <tr key={`${i}-detail`} className="border-b border-line">
+                          <td colSpan={6} className="bg-surface-2 px-4 py-4">
                             <DecisionPanel
                               locale={locale}
                               trace={e.trace}
@@ -267,7 +267,7 @@ export default function AuditTrail({ locale, trail }) {
         )}
       </Panel>
 
-      <p className="mt-3 font-mono text-[11.5px] text-stone-500">{T("audit.footer")}</p>
+      <p className="mt-3 font-mono text-[11.5px] text-ink-dim">{T("audit.footer")}</p>
     </>
   );
 }

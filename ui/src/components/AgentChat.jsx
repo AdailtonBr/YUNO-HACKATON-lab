@@ -41,14 +41,14 @@ function PurchaseCard({ locale, item, result }) {
           <Label>
             {T("chat.proposal")} · {item.merchantName}
           </Label>
-          <p className="mt-0.5 font-sans text-[15px] font-semibold text-stone-900">{item.name}</p>
+          <p className="mt-0.5 font-sans text-[15px] font-semibold text-ink">{item.name}</p>
         </div>
         <Chip tone={chip.tone} dot>
           {T(chip.key)}
         </Chip>
       </header>
 
-      <div className="grid grid-cols-2 divide-x divide-stone-200/70 border-y border-stone-200/70 bg-white/70 sm:grid-cols-3">
+      <div className="grid grid-cols-2 divide-x divide-line border-y border-line bg-surface sm:grid-cols-3">
         <Metric label={T("chat.unitPrice")} value={money(item.price, item.currency, locale)} />
         <Metric
           label={T("chat.attributes")}
@@ -59,10 +59,10 @@ function PurchaseCard({ locale, item, result }) {
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5">
-        <p className="font-mono text-[11.5px] text-stone-500">
+        <p className="font-mono text-[11.5px] text-ink-dim">
           {result?.receiptId ? (
             <>
-              {T("chat.settled")} · <span className="text-stone-700">{result.receiptId.slice(0, 18)}…</span>
+              {T("chat.settled")} · <span className="text-ink-dim">{result.receiptId.slice(0, 18)}…</span>
             </>
           ) : (
             result?.reasonText ?? "—"
@@ -71,7 +71,7 @@ function PurchaseCard({ locale, item, result }) {
         {(result?.trace?.length ?? 0) > 0 && (
           <button
             onClick={() => setOpen((o) => !o)}
-            className="font-sans text-[12.5px] font-semibold text-blue-700 hover:underline"
+            className="font-sans text-[12.5px] font-semibold text-brand hover:underline"
           >
             {open ? T("chat.hideDecision") : T("chat.seeDecision")}
           </button>
@@ -79,7 +79,7 @@ function PurchaseCard({ locale, item, result }) {
       </div>
 
       {open && (
-        <div className="border-t border-stone-200/70 bg-white p-3">
+        <div className="border-t border-line bg-surface p-3">
           <DecisionPanel
             locale={locale}
             trace={result.trace}
@@ -98,7 +98,7 @@ function ProposalDrafted({ locale, goToProposals }) {
   const T = (k) => t(locale, k);
   return (
     <Panel tone="wait" className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-      <p className="font-mono text-[12.5px] text-amber-900">{T("chat.proposalDrafted")}</p>
+      <p className="font-mono text-[12.5px] text-wait-ink">{T("chat.proposalDrafted")}</p>
       <Button variant="approve" onClick={goToProposals}>
         {T("chat.goToProposals")}
       </Button>
@@ -161,16 +161,16 @@ export default function AgentChat({ locale, mandate, whileAway = [], log, setLog
             <Label>{T("chat.whileAway")}</Label>
             <ul className="mt-1.5 space-y-1">
               {whileAway.map((e, i) => (
-                <li key={i} className="font-mono text-[12.5px] text-emerald-900">
+                <li key={i} className="font-mono text-[12.5px] text-allow-ink">
                   {e.purchase?.productId} · {money(e.purchase?.price ?? 0, e.purchase?.currency, locale)} ·{" "}
                   {e.merchantId} ·{" "}
-                  <span className="text-emerald-700">
+                  <span className="text-allow-ink">
                     {new Date(e.ts).toLocaleString(locale === "pt" ? "pt-BR" : "en-US")}
                   </span>
                 </li>
               ))}
             </ul>
-            <p className="mt-1.5 font-sans text-[12.5px] leading-relaxed text-emerald-800">
+            <p className="mt-1.5 font-sans text-[12.5px] leading-relaxed text-allow-ink">
               {T("chat.whileAwayNote")}
             </p>
           </Panel>
@@ -178,9 +178,9 @@ export default function AgentChat({ locale, mandate, whileAway = [], log, setLog
 
         {log.length === 0 && (
           <div className="mx-auto mt-16 max-w-md text-center">
-            <p className="font-sans text-[14px] leading-relaxed text-stone-500">{T("chat.startHint")}</p>
+            <p className="font-sans text-[14px] leading-relaxed text-ink-dim">{T("chat.startHint")}</p>
             {!mandate && (
-              <p className="mt-3 font-mono text-[12px] text-stone-400">{T("chat.noMandate")}</p>
+              <p className="mt-3 font-mono text-[12px] text-ink-faint">{T("chat.noMandate")}</p>
             )}
           </div>
         )}
@@ -188,21 +188,21 @@ export default function AgentChat({ locale, mandate, whileAway = [], log, setLog
         {log.map((m, i) =>
           m.role === "human" ? (
             <div key={i} className="flex justify-end">
-              <div className="max-w-[75%] rounded-lg bg-stone-100 px-4 py-2.5">
-                <p className="font-sans text-[14px] leading-relaxed text-stone-800">{m.text}</p>
-                <p className="mt-1 text-right font-mono text-[10.5px] text-stone-400">{time(m.ts)}</p>
+              <div className="max-w-[75%] rounded-lg bg-surface-2 px-4 py-2.5">
+                <p className="font-sans text-[14px] leading-relaxed text-ink">{m.text}</p>
+                <p className="mt-1 text-right font-mono text-[10.5px] text-ink-faint">{time(m.ts)}</p>
               </div>
             </div>
           ) : (
             <div key={i} className="space-y-3">
               <div className="flex items-baseline gap-2">
                 <Label>{T("chat.agentName")}</Label>
-                <span className="font-mono text-[10.5px] text-stone-400">{time(m.ts)}</span>
+                <span className="font-mono text-[10.5px] text-ink-faint">{time(m.ts)}</span>
               </div>
               {m.text && (
                 <p
                   className={`max-w-[90%] whitespace-pre-wrap font-sans text-[14px] leading-relaxed ${
-                    m.error ? "text-red-700" : "text-stone-800"
+                    m.error ? "text-deny-ink" : "text-ink"
                   }`}
                 >
                   {m.text}
@@ -219,11 +219,11 @@ export default function AgentChat({ locale, mandate, whileAway = [], log, setLog
           )
         )}
 
-        {busy && <p className="font-mono text-[12px] text-stone-400">{T("chat.working")}</p>}
+        {busy && <p className="font-mono text-[12px] text-ink-faint">{T("chat.working")}</p>}
         <div ref={endRef} />
       </div>
 
-      <div className="shrink-0 border-t border-stone-200 pt-4">
+      <div className="shrink-0 border-t border-line pt-4">
         <div className="flex items-end gap-3">
           <input
             ref={inputRef}
@@ -232,13 +232,13 @@ export default function AgentChat({ locale, mandate, whileAway = [], log, setLog
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}
             placeholder={T("chat.placeholder")}
-            className="flex-1 rounded border border-stone-300 bg-white px-3.5 py-2.5 font-sans text-[14px] text-stone-900 outline-none transition focus:border-stone-800 focus:ring-2 focus:ring-stone-900/10"
+            className="flex-1 rounded border border-line-strong bg-surface px-3.5 py-2.5 font-sans text-[14px] text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand-line"
           />
           <Button onClick={send} disabled={busy || !draft.trim()}>
             {T("chat.send")}
           </Button>
         </div>
-        <p className="mt-2.5 font-mono text-[11.5px] text-stone-500">
+        <p className="mt-2.5 font-mono text-[11.5px] text-ink-dim">
           {mandate
             ? T("chat.footer").replace("{n}", mandate.constraints?.length ?? 0)
             : T("chat.footerNoMandate")}

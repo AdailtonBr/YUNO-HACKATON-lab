@@ -42,21 +42,21 @@ export default function RevokeDialog({ locale, mandate, descendants = [], onClos
   if (!mandate) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-2xl overflow-hidden rounded-lg bg-white shadow-2xl"
+        className="w-full max-w-2xl overflow-hidden rounded-lg bg-surface shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between gap-4 bg-red-700 px-5 py-3.5">
           <div className="flex items-center gap-2.5">
-            <span className="h-2.5 w-2.5 bg-white" />
+            <span className="h-2.5 w-2.5 bg-surface" />
             <h2 className="font-sans text-[15px] font-semibold text-white">{T("revoke.title")}</h2>
           </div>
           <span className="font-mono text-[11.5px] text-red-100">{mandate.mandateId.slice(0, 16)}…</span>
         </header>
 
         <div className="space-y-5 px-5 py-5">
-          <p className="font-sans text-[14px] leading-relaxed text-stone-700">{T("revoke.lead")}</p>
+          <p className="font-sans text-[14px] leading-relaxed text-ink-dim">{T("revoke.lead")}</p>
 
           <div>
             <Label>{T("revoke.whatEnds")}</Label>
@@ -67,7 +67,7 @@ export default function RevokeDialog({ locale, mandate, descendants = [], onClos
                 T("revoke.item3"),
                 T("revoke.item4"),
               ].map((line, i) => (
-                <li key={i} className="flex gap-2.5 font-mono text-[12.5px] leading-relaxed text-stone-600">
+                <li key={i} className="flex gap-2.5 font-mono text-[12.5px] leading-relaxed text-ink-dim">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 bg-red-600" />
                   {line}
                 </li>
@@ -75,19 +75,19 @@ export default function RevokeDialog({ locale, mandate, descendants = [], onClos
             </ul>
           </div>
 
-          <div className="rounded border border-stone-200 bg-stone-50 px-4 py-3">
+          <div className="rounded border border-line bg-surface-2 px-4 py-3">
             <Label>{T("revoke.mandate")}</Label>
-            <p className="mt-1 font-sans text-[13.5px] leading-relaxed text-stone-800">{mandate.humanReadable}</p>
+            <p className="mt-1 font-sans text-[13.5px] leading-relaxed text-ink">{mandate.humanReadable}</p>
             <p className="mt-2">
               <Mono value={mandate.mandateId} copy />
             </p>
           </div>
 
           {descendants.length > 0 && (
-            <div className="rounded border border-amber-200 bg-amber-50 px-4 py-3">
+            <div className="rounded border border-wait-line bg-wait-bg px-4 py-3">
               <Label>{T("revoke.cascadeTitle")}</Label>
-              <p className="mt-1 font-sans text-[13px] text-amber-950">{T("revoke.cascadeLead").replace("{n}", descendants.length)}</p>
-              <ul className="mt-2 space-y-1 font-mono text-[11.5px] text-amber-900">
+              <p className="mt-1 font-sans text-[13px] text-wait-ink">{T("revoke.cascadeLead").replace("{n}", descendants.length)}</p>
+              <ul className="mt-2 space-y-1 font-mono text-[11.5px] text-wait-ink">
                 {descendants.map((child) => <li key={child.mandateId}>↳ {child.humanReadable ?? child.mandateId}</li>)}
               </ul>
             </div>
@@ -97,7 +97,7 @@ export default function RevokeDialog({ locale, mandate, descendants = [], onClos
             <Label>{T("revoke.typeToConfirm")}</Label>
             {/* A frase exigida fica VISÍVEL e selecionável, não só de placeholder:
                 o humano não deveria ter que adivinhar o formato. */}
-            <p className="mt-1.5 select-all rounded border border-stone-200 bg-stone-50 px-3 py-2 font-mono text-[13px] text-stone-700">
+            <p className="mt-1.5 select-all rounded border border-line bg-surface-2 px-3 py-2 font-mono text-[13px] text-ink-dim">
               {phrase}
             </p>
             <div className="mt-2 flex items-center gap-3">
@@ -106,10 +106,10 @@ export default function RevokeDialog({ locale, mandate, descendants = [], onClos
                 value={typed}
                 onChange={(e) => setTyped(e.target.value)}
                 placeholder={phrase}
-                className="w-full rounded border border-stone-300 bg-white px-3 py-2.5 font-mono text-[14px] tracking-wide text-stone-900 outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/10"
+                className="w-full rounded border border-line-strong bg-surface px-3 py-2.5 font-mono text-[14px] tracking-wide text-ink outline-none focus:border-deny-line focus:ring-2 focus:ring-deny-line"
               />
               {matches && (
-                <span className="shrink-0 font-mono text-[12px] font-medium text-emerald-700">
+                <span className="shrink-0 font-mono text-[12px] font-medium text-allow-ink">
                   {T("revoke.matches")}
                 </span>
               )}
@@ -117,8 +117,8 @@ export default function RevokeDialog({ locale, mandate, descendants = [], onClos
           </div>
         </div>
 
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 bg-stone-50 px-5 py-3.5">
-          <p className="font-mono text-[11.5px] text-stone-500">{T("revoke.logged")}</p>
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-surface-2 px-5 py-3.5">
+          <p className="font-mono text-[11.5px] text-ink-dim">{T("revoke.logged")}</p>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={onClose}>
               {T("revoke.cancel")}

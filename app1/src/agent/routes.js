@@ -53,20 +53,21 @@ export function buildAgentRouter() {
   const storesFor = (includeFake) => (includeFake ? [...knownStores(), unregisteredStore()] : knownStores());
 
   /**
-   * O ultimo ciclo diario, como DADO -- nao como texto formatado.
+  /**
+   * O último ciclo diário, como o agente o montou.
    *
-   * A tela renderiza os campos; o agente nao decide como ela desenha.  E se
-   * ninguem rodou um ciclo ainda (vigia desligado, ou o processo acabou de
-   * subir), devolvemos 204 em vez de um objeto vazio: "ainda nao aconteceu" e
-   * diferente de "aconteceu e nao deu nada".
+   * É leitura do rascunho DELE, e a rota deixa isso explícito devolvendo
+   * `cycle: null` quando ainda não houve nenhum — a tela mostra "esperando o
+   * primeiro ciclo", em vez de inventar uma tabela vazia que parece um erro.
    */
-  r.get("/agent/cycles/latest", (_req, res) => {
-    const cycle = latestCycle();
-    if (!cycle) return res.status(204).end();
-    res.json(cycle);
-  });
+  r.get("/agent/cycles/latest", (_req, res) => res.json({ cycle: latestCycle() }));
 
-  /** Roda um ciclo AGORA, para a demo nao depender de esperar o relogio. */
+  /**
+   * Roda um ciclo AGORA.
+   *
+   * A demo não pode depender de esperar o relógio: numa apresentação de cinco
+   * minutos, "espere o próximo tique" é tempo morto na frente da banca.
+   */
   r.post("/agent/cycles/run", async (_req, res) => {
     const agent = agentCredential();
     try {
@@ -77,7 +78,7 @@ export function buildAgentRouter() {
         humanId: agent.humanId,
         authorityUrl: authorityUrl(),
       });
-      res.json(cycle);
+      res.json({ cycle });
     } catch (e) {
       res.status(502).json({ error: "cycle_failed", detail: e.message });
     }

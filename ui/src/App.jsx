@@ -7,12 +7,32 @@ import ApprovalQueue from "./components/ApprovalQueue.jsx";
 import Mandates from "./components/Mandates.jsx";
 import AuditTrail from "./components/AuditTrail.jsx";
 import EnergyPortal from "./components/EnergyPortal.jsx";
+import DailyCycle from "./components/DailyCycle.jsx";
 import Wallet from "./components/Wallet.jsx";
 
 const POLL_MS = 5000;
 
+/**
+ * O tema.
+ *
+ * A escolha da pessoa vence; sem escolha, obedecemos ao sistema.  Um portal de
+ * mesa de operação é olhado por horas, e impor claro a quem configurou o
+ * sistema inteiro em escuro é uma decisão que não é nossa para tomar.
+ *
+ * Lido de forma sincrona ANTES do primeiro paint, e com `try` porque em janela
+ * anonima o acesso ao storage pode simplesmente lancar.
+ */
+const readTheme = () => {
+  try {
+    const saved = localStorage.getItem("charter.theme");
+    if (saved === "dark" || saved === "light") return saved;
+  } catch {}
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+};
+
 export default function App() {
   const [locale, setLocale] = useState("en");
+  const [theme, setTheme] = useState(readTheme);
   const [tab, setTab] = useState("issue");
   const [mandates, setMandates] = useState([]);
   const [approvals, setApprovals] = useState([]);
@@ -49,6 +69,28 @@ export default function App() {
   }, [locale]);
 
   useEffect(() => { reload(); }, [reload]);
+
+  /**
+   * O tema vive no `<html>`, e não num contexto de React: o fundo da página é
+   * pintado antes de qualquer componente montar.
+   *
+   * A transição é ligada só DURANTE a troca (`theme-switching`) e desligada
+   * depois — e nunca na primeira montagem, senão a página nasce se colorindo.
+   */
+  const firstPaint = useRef(true);
+  useEffect(() => {
+    const root = document.documentElement;
+    if (firstPaint.current) {
+      firstPaint.current = false;
+      root.dataset.theme = theme;
+      return;
+    }
+    root.classList.add("theme-switching");
+    root.dataset.theme = theme;
+    try { localStorage.setItem("charter.theme", theme); } catch {}
+    const id = setTimeout(() => root.classList.remove("theme-switching"), 220);
+    return () => clearTimeout(id);
+  }, [theme]);
 
   const busyRef = useRef(false);
   useEffect(() => {
@@ -91,6 +133,9 @@ export default function App() {
       <Shell
         locale={locale}
         setLocale={setLocale}
+        theme={theme}
+        setTheme={setTheme}
+        curve={curves[0] ?? null}
         tab={tab}
         setTab={setTab}
         mandate={focused}
@@ -100,11 +145,11 @@ export default function App() {
         counts={{ approvals: approvals.length }}
         onRevoke={() => focused && setRevoking(focused)}
       >
-        {err && <div className="mb-5 rounded border border-red-200 bg-red-50 px-4 py-3 font-mono text-[12.5px] text-red-700">{err}</div>}
+        {err && <div className="mb-5 rounded border border-deny-line bg-deny-bg px-4 py-3 font-mono text-[12.5px] text-deny-ink">{err}</div>}
 
         {tab === "wallet" && <Wallet locale={locale} methods={methods} reload={reload} />}
         {tab === "issue" && <EnergyPortal.Issuer locale={locale} methods={methods} reload={reload} />}
-        {tab === "cycle" && <EnergyPortal.DailyCycle locale={locale} cycle={cycle} trail={trail} />}
+        {tab === "cycle" && <DailyCycle locale={locale} cycle={cycle} trail={trail} />}
         {tab === "approvals" && <ApprovalQueue locale={locale} approvals={approvals} reload={reload} />}
         {tab === "mandates" && (
           <Mandates
@@ -115,7 +160,7 @@ export default function App() {
             onRevoke={setRevoking}
           />
         )}
-        {tab === "curve" && <EnergyPortal.Curves locale={locale} curves={curves} reload={reload} />}
+        {tab === "curve" && <EnergyPortal.Curves locale={locale} curves={curves} reload={reload} mandate={focused} />}
         {tab === "audit" && <AuditTrail locale={locale} trail={trail} />}
       </Shell>
 

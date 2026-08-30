@@ -100,18 +100,18 @@ export default function Proposals({ locale, proposals, methods = [], addresses =
               />
 
               {/* A frase: para entender. */}
-              <div className="border-b border-amber-200/70 bg-stone-900 px-5 py-4">
-                <Label className="!text-stone-400">{T("proposals.whatYouAuthorize")}</Label>
+              <div className="border-b border-wait-line bg-ink px-5 py-4">
+                <Label className="!text-ink-faint">{T("proposals.whatYouAuthorize")}</Label>
                 <p className="mt-1.5 font-sans text-[15px] leading-relaxed text-white">{p.humanReadable}</p>
-                <p className="mt-2 font-mono text-[10.5px] text-stone-500">{T("proposals.renderedByServer")}</p>
+                <p className="mt-2 font-mono text-[10.5px] text-ink-dim">{T("proposals.renderedByServer")}</p>
               </div>
 
               {/* O que o agente NÃO perguntou.  Ele caiu no default seguro, mas
                   "seguro" não é "combinado" — você não escolheu isso. */}
               {(p.assumed ?? []).length > 0 && (
-                <div className="border-b border-amber-200/70 bg-amber-50/60 px-5 py-3">
+                <div className="border-b border-wait-line bg-wait-bg px-5 py-3">
                   <Label>{T("proposals.assumed")}</Label>
-                  <p className="mt-1 font-sans text-[13px] leading-relaxed text-amber-900">
+                  <p className="mt-1 font-sans text-[13px] leading-relaxed text-wait-ink">
                     {T("proposals.assumedNote")}{" "}
                     {p.assumed.map((a) => T(`proposals.assumed_${a}`)).join(" · ")}
                   </p>
@@ -122,16 +122,16 @@ export default function Proposals({ locale, proposals, methods = [], addresses =
                   tabela de regras — e é justamente a ausência que alarga o
                   mandato sem o humano perceber.  Por isso vem antes da tabela. */}
               {(p.unconstrained ?? []).length > 0 && (
-                <div className="border-b border-amber-200/70 bg-amber-50/60 px-5 py-3.5">
+                <div className="border-b border-wait-line bg-wait-bg px-5 py-3.5">
                   <Label>{T("proposals.notLimited")}</Label>
-                  <p className="mt-1 font-sans text-[13px] leading-relaxed text-amber-900">
+                  <p className="mt-1 font-sans text-[13px] leading-relaxed text-wait-ink">
                     {T("proposals.notLimitedNote")}
                   </p>
                   <ul className="mt-2 space-y-1">
                     {p.unconstrained.map((u) => (
-                      <li key={u.attr} className="font-mono text-[12.5px] text-amber-900">
+                      <li key={u.attr} className="font-mono text-[12.5px] text-wait-ink">
                         <span className="font-semibold">{u.attr}</span>
-                        <span className="text-amber-700"> — {T("proposals.catalogHas")} {u.values.join(", ")}</span>
+                        <span className="text-wait-ink"> — {T("proposals.catalogHas")} {u.values.join(", ")}</span>
                       </li>
                     ))}
                   </ul>
@@ -140,7 +140,7 @@ export default function Proposals({ locale, proposals, methods = [], addresses =
 
               {/* Como paga e para onde vai: o julgamento de entrega é do modelo,
                   então aparece aqui para o humano conferir ANTES de autorizar. */}
-              <div className="grid gap-4 border-b border-amber-200/70 bg-white/70 px-5 py-3 sm:grid-cols-3">
+              <div className="grid gap-4 border-b border-wait-line bg-surface px-5 py-3 sm:grid-cols-3">
                 {/* O MODO fica aqui, não escondido entre as métricas pequenas:
                     "compra dormindo" e "me pergunta antes" é a diferença mais
                     consequente da proposta, e a que o agente mais esquece de
@@ -149,7 +149,7 @@ export default function Proposals({ locale, proposals, methods = [], addresses =
                   <Label>{T("proposals.mode")}</Label>
                   <p
                     className={`mt-0.5 font-mono text-[13px] ${
-                      p.draft.mode === "aprovacao" ? "text-emerald-800" : "text-amber-900"
+                      p.draft.mode === "aprovacao" ? "text-allow-ink" : "text-wait-ink"
                     }`}
                   >
                     {T(p.draft.mode === "aprovacao" ? "proposals.modeApproval" : "proposals.modeAutonomous")}
@@ -157,28 +157,28 @@ export default function Proposals({ locale, proposals, methods = [], addresses =
                 </div>
                 <div>
                   <Label>{T("proposals.paysWith")}</Label>
-                  <p className="mt-0.5 font-mono text-[13px] text-stone-800">
+                  <p className="mt-0.5 font-mono text-[13px] text-ink">
                     {methodLabel(p.draft.paymentMethodId) ?? T("proposals.noMethod")}
                   </p>
                 </div>
                 <div>
                   <Label>{T("proposals.delivery")}</Label>
-                  <p className="mt-0.5 font-mono text-[13px] text-stone-800">
+                  <p className="mt-0.5 font-mono text-[13px] text-ink">
                     {p.delivery?.required
                       ? addressLabel(p.delivery.addressId) ?? T("proposals.noAddress")
                       : T("proposals.noDeliveryNeeded")}
                   </p>
                   {p.delivery?.note && (
-                    <p className="mt-0.5 font-mono text-[11px] text-stone-400">{p.delivery.note}</p>
+                    <p className="mt-0.5 font-mono text-[11px] text-ink-faint">{p.delivery.note}</p>
                   )}
                 </div>
               </div>
 
               {/* A tabela: para conferir. */}
-              <div className="overflow-x-auto bg-white/70">
+              <div className="overflow-x-auto bg-surface">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-stone-200/70 text-left">
+                    <tr className="border-b border-line text-left">
                       <th className="px-5 py-2"><Label>{T("proposals.rule")}</Label></th>
                       <th className="px-3 py-2"><Label>{T("proposals.limit")}</Label></th>
                       <th className="px-3 py-2"><Label>{T("proposals.ifMissing")}</Label></th>
@@ -187,12 +187,12 @@ export default function Proposals({ locale, proposals, methods = [], addresses =
                   </thead>
                   <tbody>
                     {(p.draft.constraints ?? []).map((c, i) => (
-                      <tr key={i} className="border-b border-stone-100 last:border-0">
-                        <td className="whitespace-nowrap px-5 py-2 font-mono text-[12.5px] text-stone-700">
-                          <span className="mr-2 text-stone-400">{String(i + 1).padStart(2, "0")}</span>
+                      <tr key={i} className="border-b border-line last:border-0">
+                        <td className="whitespace-nowrap px-5 py-2 font-mono text-[12.5px] text-ink-dim">
+                          <span className="mr-2 text-ink-faint">{String(i + 1).padStart(2, "0")}</span>
                           {c.attr}
                         </td>
-                        <td className="px-3 py-2 font-mono text-[12.5px] text-stone-600">
+                        <td className="px-3 py-2 font-mono text-[12.5px] text-ink-dim">
                           {c.op}{" "}
                           {isMoneyAttr(c.attr) ? money(c.value, p.draft.currency, locale) : String(c.value)}
                         </td>
@@ -212,7 +212,7 @@ export default function Proposals({ locale, proposals, methods = [], addresses =
                 </table>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2 border-t border-stone-200/70 px-5 py-3 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2 border-t border-line px-5 py-3 sm:grid-cols-4">
                 {[
                   [T("proposals.uses"), String(p.draft.maxUses ?? 1)],
                   [T("proposals.validUntil"), new Date(p.draft.expiresAt).toISOString().slice(0, 10)],
@@ -220,21 +220,21 @@ export default function Proposals({ locale, proposals, methods = [], addresses =
                 ].map(([k, v]) => (
                   <div key={k}>
                     <Label>{k}</Label>
-                    <p className="mt-0.5 font-mono text-[12.5px] text-stone-800">{v}</p>
+                    <p className="mt-0.5 font-mono text-[12.5px] text-ink">{v}</p>
                   </div>
                 ))}
               </div>
 
               {(blocker(p) || error[p.proposalId]) && (
-                <div className="border-t border-red-200 bg-red-50 px-5 py-3">
+                <div className="border-t border-deny-line bg-deny-bg px-5 py-3">
                   <Label>{T("proposals.cannotAuthorize")}</Label>
-                  <p className="mt-1 font-sans text-[13px] leading-relaxed text-red-800">
+                  <p className="mt-1 font-sans text-[13px] leading-relaxed text-deny-ink">
                     {blocker(p) ?? error[p.proposalId]}
                   </p>
                 </div>
               )}
 
-              <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200/70 px-5 py-3">
+              <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3">
                 <Mono value={p.proposalId} />
                 <div className="flex gap-2">
                   <Button variant="refuse" onClick={discard(p)} disabled={busy === p.proposalId}>
@@ -252,7 +252,7 @@ export default function Proposals({ locale, proposals, methods = [], addresses =
             </Panel>
           ))}
 
-          <p className="font-mono text-[11.5px] text-stone-500">{T("proposals.footer")}</p>
+          <p className="font-mono text-[11.5px] text-ink-dim">{T("proposals.footer")}</p>
         </div>
       )}
     </>
