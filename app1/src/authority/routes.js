@@ -171,6 +171,12 @@ export function buildRouter() {
     expiresAt: m.expiresAt,
     constraints: m.constraints,
     shippingAddressId: m.shippingAddressId ?? null,
+    // A moldura sai porque quem opera precisa saber que NAO deve operar sob
+    // ela.  Sem isto o ciclo nao tinha como aplicar a regra e lia o banco
+    // direto -- o atalho que furava a fronteira do agente.
+    parentMandateId: m.parentMandateId ?? null,
+    version: m.version ?? 1,
+    supersedes: m.supersedes ?? null,
     // paymentMethodRef NUNCA sai daqui.
   });
 

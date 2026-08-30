@@ -19,13 +19,24 @@ the security.
 
 ### The internal boundary that matters
 
-Agent and Authority share a deployment but are separate roles. `app1/src/agent/` speaks **only HTTP** — it
-does not import the models, does not open Mongo, does not call `evaluate`. The boundary is not the
-discipline of whoever writes the code; it is what the file can reach.
+Agent and Authority share a deployment but are separate roles. `app1/src/agent/` reaches the Authority
+**only over HTTP**: it does not import the models, does not open Mongo, does not call `evaluate`, and
+never names the `paymentMethodRef`. It reads mandates through the same public route any client would use
+— which returns the constraints and the frame, and never the payment pointer.
+
+It does share two **pure functions** with the Authority: status derivation and the economics projection.
+That is deliberate and is not a leak — sharing a pure function is not sharing authority. It is what makes
+the comparison table the human sees match the number the Authority will compute.
+
+**This is checked, not asserted.** `app1/test/boundary.test.js` reads the agent's source and fails if any
+of it imports the models, touches mongoose, queries a collection, calls `evaluate`, writes state, or
+mentions the payment pointer. The claim was false once — the daily cycle read `Mandate.find({})` straight
+from Mongo, which returns the whole document, pointer included. Nobody noticed, because the sentence lived
+in a document and the shortcut lived in another file. The test is what stops it becoming false again.
 
 If asked *"they're the same app — what stops the agent from authorising itself?"*: authorisation state is
-written only by the human, through the Portal; the agent reads an id; verification and revocation read
-that state; **the agent has no write path into it**.
+written only by the human, through the Portal; the agent reads an id and the limits; verification and
+revocation read that state; **the agent has no write path into it, and no say in the verdict**.
 
 ---
 

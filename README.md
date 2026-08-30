@@ -36,7 +36,8 @@ Every one is enforced in code and covered by tests.
    says no.
 2. **The agent never creates or widens a mandate.** There is no such tool. Issuing is a human act on a
    separate screen.
-3. **The agent has no write path** to mandate state or revocation. It reads an id; only the Authority writes.
+3. **The agent has no write path** to mandate state or revocation. It reads through the public route; only
+   the Authority writes. Enforced by a test that reads the agent's own source.
 4. **Identity is proved, not declared.** The `agentId` is derived from a ticket the agent **signed**
    (HMAC), verified by the Authority. The merchant relays it untouched — transport, not source.
 5. **The interested party does not attest.** The counterparty describes its own offer; its **credit
@@ -257,6 +258,7 @@ npm run test:fast     # parallel, ~4s, but flaky by ~25% — see the note in aud
 |---|---|
 | `fire-drill.test.js` | **the 12 trial-by-fire scenarios** — the acceptance criteria |
 | `adversarial.test.js` | **24 attacks over HTTP**, black-box |
+| `boundary.test.js` | the agent/Authority boundary, checked against the **source** — no database, no engine, no pointer |
 | `freeze.test.js` | the demo's numbers against the real engine |
 | `engine.test.js` · `quantity.test.js` · `ticket.test.js` | the pure core |
 | `energy.test.js` · `introspect.test.js` · `merchants-energy.test.js` | integration through real HTTP |

@@ -34,7 +34,6 @@ import {
   attemptResult,
   formatCycle,
 } from "./cycle-log.js";
-import { Mandate } from "../authority/models.js";
 import { mandateStatus } from "../authority/engine.js";
 import { diasParaDenuncia } from "../authority/energy.js";
 
@@ -142,6 +141,35 @@ export function planCycle({
 }
 
 /** Lê a curva e o contrato pela porta pública da Autoridade.  Só HTTP. */
+/**
+ * Os mandatos, pela PORTA PUBLICA -- nao pelo banco.
+ *
+ * Este modulo ja leu o Mongo direto, e o atalho custava caro: `Mandate.find`
+ * devolve o documento INTEIRO, `paymentMethodRef` incluso, e a invariante diz
+ * que o agente nunca ve o instrumento.  Ele nunca o usava, mas "nunca ve"
+ * tinha deixado de ser verdade -- e a fronteira do agente virava disciplina de
+ * quem escreve, quando o valor dela e ser topologia.
+ *
+ * Pela rota, o que chega e o que `publicMandate` deixa sair.  De quebra, o
+ * agente passa a enxergar so os mandatos da empresa que ele serve, em vez de
+ * todos os do banco.
+ *
+ * Duas traducoes que a rede impoe: `mandateId` volta a ser `_id`, e `expiresAt`
+ * volta a ser Date -- JSON so tem string, e `mandateStatus` compara com um
+ * relogio.  String contra Date da NaN, e um mandato expirado passaria por vivo.
+ */
+async function readMandates(base, humanId) {
+  if (!humanId) return [];
+  try {
+    const r = await fetch(`${base}/mandates`, { headers: { "x-human-id": humanId } });
+    if (!r.ok) return [];
+    const list = await r.json();
+    return list.map((m) => ({ ...m, _id: m.mandateId, expiresAt: new Date(m.expiresAt) }));
+  } catch {
+    return [];
+  }
+}
+
 async function readWorld(base, humanId) {
   // O contrato e dado de NEGOCIO do titular -- revela volume, sazonalidade e,
   // por tabela, turnos e paradas de fabrica.  Por isso /contracts exige sessao,
@@ -219,8 +247,8 @@ export async function runCycle(deps) {
     note: `${contract.fornecedor} @ ${contract.precoBrlMwh} · ${contract.volumeRemanescenteMwh} MWh`,
   });
 
-  // TODOS os mandatos, inclusive os mortos -- e a exclusao dos mortos aqui era
-  // um furo, nao uma otimizacao.
+  // TODOS os mandatos, inclusive os mortos -- e a exclusao dos mortos era um
+  // furo, nao uma otimizacao.
   //
   // O conjunto de molduras sai do parentMandateId DESTA lista.  Filtrando os
   // revogados antes, um filho revogado sumia, o pai deixava de ser pai de
@@ -232,7 +260,7 @@ export async function runCycle(deps) {
   //
   // Quem e moldura continua moldura, com o filho vivo ou morto.  Os mortos
   // saem logo abaixo, pelo mandateStatus, que e onde essa decisao pertence.
-  const mandates = await Mandate.find({}).lean();
+  const mandates = await readMandates(base, deps.humanId);
   if (mandates.length === 0) {
     step(cycle, STEP.OUTCOME, { note: "no active mandate" });
     return cycle;
