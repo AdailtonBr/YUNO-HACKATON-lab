@@ -45,6 +45,14 @@ const Icon = ({ d, className = "" }) => (
 );
 
 const NAV_ICON = {
+  // Um cofre, e nao uma carteira: e a palavra que a propria tela usa -- a
+  // credencial entra no cofre e nao sai.  Corpo, segredo e macaneta, no mesmo
+  // traco geometrico dos outros; a 15px, qualquer detalhe a mais vira sujeira.
+  wallet: [
+    "M4.5 5.5h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1Z",
+    "M12.6 12a2.6 2.6 0 1 1-5.2 0 2.6 2.6 0 0 1 5.2 0",
+    "M16.6 10.2v3.6",
+  ],
   issue: ["M8 3h6l4 4v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z", "M14 3v4h4", "M9 13h6", "M9 16.5h4"],
   cycle: ["M3.5 12a8.5 8.5 0 0 1 14.6-5.9M20.5 12a8.5 8.5 0 0 1-14.6 5.9", "M18 3v3.5h-3.5", "M6 21v-3.5h3.5"],
   approvals: ["M4 5.5h16", "M4 12h16", "M4 18.5h9", "M16.5 18 18 19.5l3-3.5"],
