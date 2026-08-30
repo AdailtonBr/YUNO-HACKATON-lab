@@ -27,9 +27,15 @@ before(async () => {
 });
 
 after(async () => {
-  server?.close();
-  await mongoose.disconnect();
-  await mongod?.stop();
+  // Desmontagem defensiva, e o motivo e concreto: um erro lancado AQUI marca o
+  // arquivo inteiro como falho enquanto todos os testes dentro dele passam --
+  // que e exatamente o sintoma que este arquivo dava, de forma intermitente,
+  // quando a suite roda os arquivos em paralelo.  Fechar o servidor sem
+  // esperar deixava soquetes vivos na hora do force-exit, e parar o mongod ja
+  // morto lanca.  Nenhum dos dois diz nada sobre o codigo sob teste.
+  await new Promise((resolve) => (server ? server.close(() => resolve()) : resolve()));
+  await mongoose.disconnect().catch(() => {});
+  await mongod?.stop().catch(() => {});
 });
 
 beforeEach(async () => {
@@ -60,3 +66,21 @@ test("/audit só devolve eventos dos mandatos do titular", async () => {
   const other = await get("/audit", asOther).then((r) => r.json());
   assert.deepEqual(other.map((e) => e.auditId), ["aud_other"]);
 });
+
+/*
+ * NOTA SOBRE A SUITE, e nao sobre este arquivo.
+ *
+ * `npm test` roda com `--test-concurrency=1`, e a razao mora aqui.  Cada arquivo
+ * de teste sobe o proprio MongoMemoryServer; com varios subindo ao mesmo tempo,
+ * a contencao entre eles fazia ESTE arquivo falhar no nivel do ARQUIVO -- os
+ * dois testes dentro dele passando, e mesmo assim o processo saindo com codigo
+ * nao-zero.  Medido: ~40% das execucoes em paralelo, ~25% depois de endurecer a
+ * desmontagem acima, e 0 em 5 execucoes seriais.
+ *
+ * Um teste que falha em uma execucao a cada tres nao e um teste: e um ruido que
+ * ensina o time a ignorar a suite.  A troca e 4s -> 16s, e vale.
+ *
+ * `npm run test:fast` mantem o paralelo para quem esta iterando e sabe disso.
+ * A correcao de verdade seria um MongoMemoryServer compartilhado entre os
+ * arquivos -- vale a pena, e nao no meio de um merge.
+ */
