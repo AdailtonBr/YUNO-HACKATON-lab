@@ -16,7 +16,16 @@
 
 import { issueTicket, newNonce } from "../authority/ticket.js";
 
-const OPS = {
+/**
+ * Os operadores, do lado do agente.  São os mesmos nomes do motor e é uma cópia
+ * deliberada: o agente **não importa** o motor para decidir nada, senão a
+ * fronteira do `docs/02` viraria disciplina em vez de arquitetura.  Esta cópia
+ * só filtra o que vale a pena TENTAR; a que decide vive na Autoridade.
+ *
+ * Exportado porque `cycle-log.js` monta a tabela de comparação do ciclo com os
+ * mesmos operadores — uma cópia no agente, não duas.
+ */
+export const OPS = {
   eq: (a, b) => a === b,
   ne: (a, b) => a !== b,
   lte: (a, b) => a <= b,
