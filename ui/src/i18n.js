@@ -18,11 +18,14 @@ const en = {
 
   nav: {
     section: "Supervision",
+    issue: "Issue mandate",
+    cycle: "Daily cycle",
     chat: "Agent",
     proposals: "Pending proposals",
     approvals: "Purchase approvals",
     mandates: "My mandates",
     wallet: "Wallet",
+    curve: "Market curve",
     audit: "Audit trail",
     enforcedBy: "Enforced where",
     enforcedByNote: "Every rule is checked by the Authority at purchase time, not by the agent.",
@@ -44,6 +47,8 @@ const en = {
     cancel: "Cancel",
     confirm: "Revoke now",
     revoking: "Revoking…",
+    cascadeTitle: "Cascade preview",
+    cascadeLead: "{n} child mandate(s) will become ineffective too.",
   },
 
   decision: {
@@ -162,10 +167,17 @@ const en = {
     modeApproval: "approval per purchase",
     use: "Use this one",
     revoke: "Revoke",
+    parent: "Parent mandate",
+    version: "Version",
+    cascade: "Revoking this mandate also makes {n} child mandate(s) ineffective.",
   },
 
   audit: {
     title: "Audit trail",
+    view: "view",
+    viewCompany: "company",
+    viewMerchant: "merchant",
+    viewAuditor: "auditor",
     note: "{n} events · append-only · nothing on this screen can be edited or deleted",
     appendOnly: "append-only",
     filter: "type",
@@ -192,6 +204,8 @@ const en = {
       rules_passed: "Every rule was evaluated and passed",
       human_approval: "You approved this specific purchase",
       charged_what_was_verified: "The amount charged is the amount verified",
+      delegation_valid: "The delegating mandate was valid when this authority was used",
+      curve_at_decision: "The market curve used for this decision was frozen in the trail",
     },
     notApplicable: "not required by this mandate",
   },
@@ -218,6 +232,17 @@ const en = {
     footer: "only the Authority resolves an id into the pointer it charges, and only when you authorize a mandate",
   },
 
+  energy: {
+    issue: { title: "Issue an energy mandate", note: "Set the six layers the Authority will enforce at contract time.", button: "Issue mandate" },
+    layer: { scope: "1 · Supply scope", scopeNote: "What contract the agent may seek.", volume: "2 · Volume and value", volumeNote: "The volume and total cap are both enforced.", risk: "3 · Load and market risk", riskNote: "Derived risk measures are checked by the Authority.", counterparty: "4 · Counterparty", counterpartyNote: "The merchant never attests its own credit quality.", governance: "5 · Governance", governanceNote: "A breach here escalates; it never silently widens authority.", integrity: "6 · Integrity and settlement", integrityNote: "Commission disclosure and payment binding." },
+    field: { submarket: "Submarket", source: "Source", structure: "Price structure", term: "Maximum term (months)", volume: "Maximum volume (MWh)", total: "Maximum contract value", discount: "Minimum discount vs curve (%)", uses: "Maximum contracts", coverageMin: "Minimum load coverage (%)", coverageMax: "Maximum load coverage (%)", flexibility: "Minimum flexibility (%)", takeOrPay: "Maximum take-or-pay (%)", pld: "Maximum PLD exposure", rating: "Minimum accepted rating", operation: "Permitted operation", netSaving: "Escalate above net saving", payment: "Settlement method", cents: "Stored as cents to keep the decision exact." },
+    option: { conventional: "Conventional", fixed: "Fixed", indexed: "Indexed", hybrid: "Hybrid", newContract: "New contract", renewal: "Renewal", termination: "Termination" },
+    guarantee: "A bank guarantee is required.", noCommission: "Third-party commission must be declared and equal to zero.", noMethod: "No settlement method registered", issued: "Mandate issued.", issuing: "Issuing…",
+    notIncluded: { title: "Not in this mandate", lead: "Anything outside these limits remains a human decision.", items: ["No authority to terminate the current contract.", "No undisclosed third-party commission.", "No self-declared merchant rating or guarantee.", "No automatic approval above the stated governance threshold.", "No payment instrument exposed to the agent or merchant."] },
+    cycle: { title: "Daily energy cycle", note: "The agent compares the market; the Authority decides what may proceed.", empty: "No daily cycle has been recorded yet.", offer: "Offer", merchant: "Merchant", price: "Effective price", outcome: "Outcome", reason: "Why" },
+    curve: { title: "Market curve", note: "This is a live reference. The Authority reads it at the instant it decides.", empty: "No market curves are available.", value: "BRL per MWh", save: "Update curve", saving: "Updating…" },
+  },
+
   errors: { authorityDown: "Cannot reach the Authority on :3001 — is it running?" },
 };
 
@@ -233,11 +258,14 @@ const pt = {
 
   nav: {
     section: "Supervisão",
+    issue: "Emitir mandato",
+    cycle: "Ciclo diário",
     chat: "Agente",
     proposals: "Propostas pendentes",
     approvals: "Aprovações de compra",
     mandates: "Meus mandatos",
     wallet: "Carteira",
+    curve: "Curva de mercado",
     audit: "Trilha de auditoria",
     enforcedBy: "Onde é imposto",
     enforcedByNote: "Toda regra é conferida pela Autoridade na hora da compra, não pelo agente.",
@@ -259,6 +287,8 @@ const pt = {
     cancel: "Cancelar",
     confirm: "Revogar agora",
     revoking: "Revogando…",
+    cascadeTitle: "Prévia da cascata",
+    cascadeLead: "{n} mandato(s) filho também ficarão sem efeito.",
   },
 
   decision: {
@@ -377,10 +407,17 @@ const pt = {
     modeApproval: "aprovação por compra",
     use: "Usar este",
     revoke: "Revogar",
+    parent: "Mandato pai",
+    version: "Versão",
+    cascade: "Revogar este mandato também torna {n} mandato(s) filho ineficazes.",
   },
 
   audit: {
     title: "Trilha de auditoria",
+    view: "visão",
+    viewCompany: "empresa",
+    viewMerchant: "comercializadora",
+    viewAuditor: "auditor",
     note: "{n} eventos · append-only · nada nesta tela pode ser editado ou apagado",
     appendOnly: "append-only",
     filter: "tipo",
@@ -407,6 +444,8 @@ const pt = {
       rules_passed: "Todas as regras foram avaliadas e passaram",
       human_approval: "Você aprovou esta compra específica",
       charged_what_was_verified: "O valor cobrado é o valor verificado",
+      delegation_valid: "O mandato que delegou o poder estava válido quando ele foi usado",
+      curve_at_decision: "A curva de mercado usada na decisão foi congelada na trilha",
     },
     notApplicable: "não exigido por este mandato",
   },
@@ -431,6 +470,17 @@ const pt = {
     addAddress: "Adicionar endereço",
     remove: "Remover",
     footer: "só a Autoridade traduz um id no ponteiro que ela cobra, e só quando você autoriza um mandato",
+  },
+
+  energy: {
+    issue: { title: "Emitir mandato de energia", note: "Defina as seis camadas que a Autoridade vai impor ao fechar o contrato.", button: "Emitir mandato" },
+    layer: { scope: "1 · Escopo do suprimento", scopeNote: "Qual contrato o agente pode procurar.", volume: "2 · Volume e valor", volumeNote: "O volume e o teto total são impostos.", risk: "3 · Risco de carga e mercado", riskNote: "A Autoridade confere as medidas de risco derivadas.", counterparty: "4 · Contraparte", counterpartyNote: "A comercializadora nunca atesta a própria qualidade de crédito.", governance: "5 · Governança", governanceNote: "Uma violação aqui escala; nunca alarga a autoridade em silêncio.", integrity: "6 · Integridade e liquidação", integrityNote: "Declaração de comissão e vínculo do pagamento." },
+    field: { submarket: "Submercado", source: "Fonte", structure: "Estrutura de preço", term: "Prazo máximo (meses)", volume: "Volume máximo (MWh)", total: "Valor máximo do contrato", discount: "Desconto mínimo vs curva (%)", uses: "Máximo de contratos", coverageMin: "Cobertura mínima da carga (%)", coverageMax: "Cobertura máxima da carga (%)", flexibility: "Flexibilidade mínima (%)", takeOrPay: "Take-or-pay máximo (%)", pld: "Exposição máxima ao PLD", rating: "Rating mínimo aceito", operation: "Operação permitida", netSaving: "Escalar acima de economia líquida", payment: "Meio de liquidação", cents: "Guardado em centavos para a decisão ser exata." },
+    option: { conventional: "Convencional", fixed: "Fixo", indexed: "Indexado", hybrid: "Híbrido", newContract: "Novo contrato", renewal: "Renovação", termination: "Rescisão" },
+    guarantee: "Garantia bancária obrigatória.", noCommission: "A comissão de terceiro deve ser declarada e igual a zero.", noMethod: "Nenhum meio de liquidação cadastrado", issued: "Mandato emitido.", issuing: "Emitindo…",
+    notIncluded: { title: "Não está neste mandato", lead: "Tudo fora destes limites continua sendo decisão humana.", items: ["Nenhuma autoridade para rescindir o contrato vigente.", "Nenhuma comissão de terceiro não declarada.", "Nenhum rating ou garantia autoafirmado pela comercializadora.", "Nenhuma aprovação automática acima da alçada declarada.", "Nenhum instrumento de pagamento exposto ao agente ou à comercializadora."] },
+    cycle: { title: "Ciclo diário de energia", note: "O agente compara o mercado; a Autoridade decide o que pode seguir.", empty: "Nenhum ciclo diário foi registrado ainda.", offer: "Oferta", merchant: "Comercializadora", price: "Preço efetivo", outcome: "Resultado", reason: "Por quê" },
+    curve: { title: "Curva de mercado", note: "Esta é uma referência viva. A Autoridade a lê no instante em que decide.", empty: "Não há curvas de mercado disponíveis.", value: "R$ por MWh", save: "Atualizar curva", saving: "Atualizando…" },
   },
 
   errors: { authorityDown: "Não consigo falar com a Autoridade em :3001 — ela está rodando?" },

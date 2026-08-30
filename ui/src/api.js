@@ -38,6 +38,11 @@ export const api = {
   reject: (id, locale) => req("POST", `/api/approvals/${id}/reject`, { locale }),
   audit: (mandateId, locale) =>
     req("GET", `/api/audit${mandateId ? `?mandateId=${mandateId}` : ""}`, { locale }),
+  curves: (locale) => req("GET", "/api/curves", { locale }),
+  updateCurve: (submercado, precoBrlMwh, locale) =>
+    req("PATCH", `/api/curves/${encodeURIComponent(submercado)}`, { body: { precoBrlMwh }, locale }),
+  contracts: (locale) => req("GET", "/api/contracts", { locale }),
+  dailyCycle: (locale) => req("GET", "/api/agent/cycles/latest", { locale }),
   // Carteira: o cru entra, so rotulo e id voltam.
   methods: (locale) => req("GET", "/api/wallet/methods", { locale }),
   addMethod: (rail, instrument, locale) =>
@@ -71,5 +76,8 @@ export const money = (cents, currency = "BRL", locale = "en") =>
  * e é o `total` que limita o gasto, então ele nunca pode aparecer como um
  * número solto na tela onde o humano decide.
  */
-export const MONEY_ATTRS = new Set(["price", "total"]);
+export const MONEY_ATTRS = new Set([
+  "price", "total", "preco_energia", "comissao_terceiro", "curva_ref_brl_mwh",
+  "multa_rescisoria_brl", "economia_liquida_brl", "exposicao_pld_brl",
+]);
 export const isMoneyAttr = (attr) => MONEY_ATTRS.has(attr);

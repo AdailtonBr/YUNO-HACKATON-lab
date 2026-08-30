@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { t } from "../i18n.js";
 import { Button, Label, Mono } from "./ui.jsx";
 
-export default function RevokeDialog({ locale, mandate, onClose, onConfirm }) {
+export default function RevokeDialog({ locale, mandate, descendants = [], onClose, onConfirm }) {
   const T = (k) => t(locale, k);
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
@@ -82,6 +82,16 @@ export default function RevokeDialog({ locale, mandate, onClose, onConfirm }) {
               <Mono value={mandate.mandateId} copy />
             </p>
           </div>
+
+          {descendants.length > 0 && (
+            <div className="rounded border border-amber-200 bg-amber-50 px-4 py-3">
+              <Label>{T("revoke.cascadeTitle")}</Label>
+              <p className="mt-1 font-sans text-[13px] text-amber-950">{T("revoke.cascadeLead").replace("{n}", descendants.length)}</p>
+              <ul className="mt-2 space-y-1 font-mono text-[11.5px] text-amber-900">
+                {descendants.map((child) => <li key={child.mandateId}>↳ {child.humanReadable ?? child.mandateId}</li>)}
+              </ul>
+            </div>
+          )}
 
           <div>
             <Label>{T("revoke.typeToConfirm")}</Label>

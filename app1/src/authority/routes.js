@@ -365,8 +365,15 @@ export function buildRouter() {
 
   /* --- Trilho auditável -------------------------------------------- */
 
-  r.get("/audit", async (req, res) => {
-    const q = req.query.mandateId ? { mandateId: req.query.mandateId } : {};
+  r.get("/audit", requireHuman, async (req, res) => {
+    // O trilho revela decisões, compras e os limites que as sustentaram.  Por
+    // isso ele pertence ao titular do mandato, mesmo quando a consulta vem sem
+    // filtro.  Não confiar no `mandateId` enviado pelo navegador evita que um
+    // id conhecido vire uma forma de enxergar o trilho de outra empresa.
+    const mandateQuery = { humanId: req.humanId };
+    if (req.query.mandateId) mandateQuery._id = req.query.mandateId;
+    const mandateIds = (await Mandate.find(mandateQuery).select({ _id: 1 }).lean()).map((m) => m._id);
+    const q = { mandateId: { $in: mandateIds } };
     // Mais RECENTES primeiro.  Era `ts: 1` com limite de 500, ou seja: os 500
     // eventos mais ANTIGOS.  Com o trilho crescendo, a tela mostraria o começo
     // da história e esconderia justamente o que acabou de acontecer.

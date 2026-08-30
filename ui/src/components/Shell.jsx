@@ -12,9 +12,9 @@
 import { t } from "../i18n.js";
 import { Chip, Label, Meter, TONE } from "./ui.jsx";
 
-// As quatro telas da Fase 3 do plano (propostas, aprovacoes, mandatos,
-// auditoria), mais a superficie do agente, que e a porta de entrada.
-const NAV = ["chat", "proposals", "approvals", "mandates", "wallet", "audit"];
+// O portal nao e a superficie do agente: ele mostra ao gestor os limites, as
+// decisoes e a trilha que a Autoridade sustenta.
+const NAV = ["issue", "cycle", "approvals", "mandates", "curve", "audit"];
 
 export default function Shell({
   locale,
