@@ -23,7 +23,7 @@ const POLL_MS = 5000;
  */
 const readTheme = () => {
   try {
-    const saved = localStorage.getItem("procura.theme");
+    const saved = localStorage.getItem("charter.theme");
     if (saved === "dark" || saved === "light") return saved;
   } catch {}
   return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -86,7 +86,7 @@ export default function App() {
     }
     root.classList.add("theme-switching");
     root.dataset.theme = theme;
-    try { localStorage.setItem("procura.theme", theme); } catch {}
+    try { localStorage.setItem("charter.theme", theme); } catch {}
     const id = setTimeout(() => root.classList.remove("theme-switching"), 220);
     return () => clearTimeout(id);
   }, [theme]);

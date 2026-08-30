@@ -7,8 +7,8 @@
  */
 
 const en = {
-  brand: "Procura",
-  brandTag: "Bounded authority",
+  brand: "Charter",
+  brandTag: "Authority, with limits",
 
   status: { active: "mandate active", revoked: "revoked", expired: "expired", exhausted: "used up", none: "no mandate" },
   policy: { deny: "refuse", escalate: "ask me", allow: "ignore" },
@@ -279,7 +279,7 @@ const en = {
 };
 
 const pt = {
-  brand: "Procura",
+  brand: "Charter",
   brandTag: "Poder com limite",
 
   status: { active: "mandato ativo", revoked: "revogado", expired: "expirado", exhausted: "esgotado", none: "sem mandato" },
