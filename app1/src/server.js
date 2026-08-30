@@ -13,6 +13,27 @@ const OFFSET = Number(process.env.PORT_OFFSET ?? 0);
 const PORT = Number(process.env.PORT ?? 3001 + OFFSET);
 const storeUrl = (n, env) => process.env[env] ?? `http://127.0.0.1:${n + OFFSET}`;
 
+/**
+ * Um valor explicito vence o deslocamento -- e e essa a regra certa: quem
+ * escreve PORT=8080 quer a 8080.  O problema e o .env HERDADO, que fixa a porta
+ * sem ninguem ter pedido e faz o PORT_OFFSET nao ter efeito NENHUM, em silencio.
+ *
+ * Custou duas subidas frustradas ate alguem entender por que a Autoridade
+ * insistia em :3001 com PORT_OFFSET=40.  E como e justamente o PORT_OFFSET que
+ * permite tres maquinas rodarem a pilha ao mesmo tempo, um silencio aqui vira
+ * meia hora perdida na maquina de cada um.  Entao ele deixou de ser silencio.
+ */
+const pinned = (name, esperado, atual) => {
+  if (!OFFSET || atual == null || String(atual) === String(esperado)) return;
+  console.warn("");
+  console.warn(`!!  PORT_OFFSET=${OFFSET} pede ${name}=${esperado}, mas o ambiente fixa ${atual}.`);
+  console.warn(`!!  Um valor fixo no .env ANULA o deslocamento. Remova ${name} do .env para as`);
+  console.warn("!!  tres maquinas conseguirem subir a pilha ao mesmo tempo.");
+  console.warn("");
+};
+pinned("PORT", 3001 + OFFSET, process.env.PORT);
+pinned("AUTHORITY_URL", `http://127.0.0.1:${3001 + OFFSET}`, process.env.AUTHORITY_URL);
+
 // Aceita os dois nomes: o do repo e o que aparece em projetos Node por aí.
 const uriFromEnv = () => process.env.MONGODB_URI || process.env.MONGO_URL || null;
 
