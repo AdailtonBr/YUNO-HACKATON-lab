@@ -36,7 +36,7 @@ const Chevron = ({ open }) => (
   </svg>
 );
 
-function MandateRow({ locale, m, selected, onSelect, onRevoke, defaultOpen }) {
+function MandateRow({ locale, m, level = 0, childrenCount = 0, selected, onSelect, onRevoke, defaultOpen }) {
   const T = (k) => t(locale, k);
   const [open, setOpen] = useState(defaultOpen);
   const dead = m.status !== "active";
@@ -45,6 +45,7 @@ function MandateRow({ locale, m, selected, onSelect, onRevoke, defaultOpen }) {
     <Panel
       tone={dead ? "mute" : undefined}
       className={`overflow-hidden ${selected ? "ring-2 ring-stone-900/10" : ""}`}
+      style={{ marginLeft: `${level * 18}px` }}
     >
       {/* ------------------------ fechado: de relance ------------------------ */}
       <button
@@ -78,6 +79,8 @@ function MandateRow({ locale, m, selected, onSelect, onRevoke, defaultOpen }) {
               [T("mandates.mode"), T(m.mode === "aprovacao" ? "mandates.modeApproval" : "mandates.modeAutonomous")],
               [T("mandates.validUntil"), new Date(m.expiresAt).toISOString().slice(0, 10)],
               [T("mandates.currency"), m.currency],
+              [T("mandates.parent"), m.parentMandateId ?? "—"],
+              [T("mandates.version"), `v${m.version ?? 1}`],
             ].map(([k, v]) => (
               <div key={k}>
                 <Label>{k}</Label>
@@ -85,6 +88,11 @@ function MandateRow({ locale, m, selected, onSelect, onRevoke, defaultOpen }) {
               </div>
             ))}
           </div>
+          {childrenCount > 0 && (
+            <p className="border-t border-stone-200/70 px-4 py-2 font-mono text-[11.5px] text-amber-800">
+              {T("mandates.cascade").replace("{n}", childrenCount)}
+            </p>
+          )}
 
           <div className="overflow-x-auto border-t border-stone-200/70">
             <table className="w-full">
@@ -142,10 +150,22 @@ function MandateRow({ locale, m, selected, onSelect, onRevoke, defaultOpen }) {
 export default function Mandates({ locale, mandates, selectedId, onSelect, onRevoke }) {
   const T = (k) => t(locale, k);
 
-  // Vivos primeiro: o registro guarda tudo, mas o que ainda vale vem na frente.
-  const ordered = [...mandates].sort(
-    (a, b) => (a.status === "active" ? 0 : 1) - (b.status === "active" ? 0 : 1)
-  );
+  // A ordem mostra delegacao, nao so data. Um filho fica logo abaixo de quem
+  // lhe deu poderes; isso faz a cascata de revogacao ser legivel antes do ato.
+  const byParent = new Map();
+  mandates.forEach((m) => {
+    const key = m.parentMandateId ?? "root";
+    byParent.set(key, [...(byParent.get(key) ?? []), m]);
+  });
+  const ordered = [];
+  const walk = (parentId, level) => {
+    const children = [...(byParent.get(parentId) ?? [])].sort((a, b) => (a.status === "active" ? 0 : 1) - (b.status === "active" ? 0 : 1));
+    children.forEach((m) => {
+      ordered.push({ m, level, childrenCount: (byParent.get(m.mandateId) ?? []).length });
+      walk(m.mandateId, level + 1);
+    });
+  };
+  walk("root", 0);
 
   return (
     <>
@@ -157,11 +177,13 @@ export default function Mandates({ locale, mandates, selectedId, onSelect, onRev
         </Panel>
       ) : (
         <div className="space-y-2.5">
-          {ordered.map((m) => (
+          {ordered.map(({ m, level, childrenCount }) => (
             <MandateRow
               key={m.mandateId}
               locale={locale}
               m={m}
+              level={level}
+              childrenCount={childrenCount}
               selected={m.mandateId === selectedId}
               onSelect={onSelect}
               onRevoke={onRevoke}

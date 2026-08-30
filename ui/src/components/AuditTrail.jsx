@@ -105,6 +105,7 @@ const FILTERS = ["all", "purchase_decision", "payment_result", "approval_granted
 export default function AuditTrail({ locale, trail }) {
   const T = (k) => t(locale, k);
   const [filter, setFilter] = useState("all");
+  const [view, setView] = useState("company");
   const [open, setOpen] = useState(null);
   const [disputes, setDisputes] = useState({}); // auditId -> resultado
   const [busy, setBusy] = useState(null);
@@ -119,7 +120,12 @@ export default function AuditTrail({ locale, trail }) {
     }
   };
 
-  const rows = trail.filter((e) => filter === "all" || e.event === filter);
+  const rows = trail.filter((e) => {
+    if (filter !== "all" && e.event !== filter) return false;
+    // Sao lentes de leitura sobre o mesmo registro append-only. A rota ja
+    // limita a fonte aos mandatos do titular; a lente nao cria permissao nova.
+    return view !== "merchant" || Boolean(e.merchantId);
+  });
 
   return (
     <>
@@ -134,6 +140,17 @@ export default function AuditTrail({ locale, trail }) {
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Label className="mr-1">{T("audit.view")}</Label>
+        {[
+          ["company", "audit.viewCompany"],
+          ["merchant", "audit.viewMerchant"],
+          ["auditor", "audit.viewAuditor"],
+        ].map(([id, label]) => (
+          <button key={id} onClick={() => setView(id)} className={`rounded border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition ${view === id ? "border-stone-800 bg-stone-900 text-white" : "border-stone-300 bg-white text-stone-600 hover:bg-stone-50"}`}>
+            {T(label)}
+          </button>
+        ))}
+        <span className="h-4 w-px bg-stone-200" />
         <Label className="mr-1">{T("audit.filter")}</Label>
         {FILTERS.map((f) => (
           <button
